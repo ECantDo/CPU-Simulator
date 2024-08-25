@@ -30,7 +30,12 @@ public class Opcodes {
         put("lst", new int[]{3, 19, 24});
         put("gre", new int[]{3, 20, 24});
         put("lse", new int[]{3, 21, 24});
-        put("neq", new int[]{3, 23, 24});
+        put("neq", new int[]{3, 22, 24});
+
+        put("str", new int[]{2, 24, 24}); // STORE (ram)
+        put("lod", new int[]{2, 25, 24}); // LOAD (ram)
+        put("cal", new int[]{0, 26, 24}); // CALL (stack)
+        put("ret", new int[]{0, 27, 24}); // RETURN (stack)
     }};
 
     //==================================================================================================================

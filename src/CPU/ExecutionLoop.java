@@ -27,7 +27,7 @@ public class ExecutionLoop {
         do {
             System.out.print(programCounter.getProgramCounter() + " : " + registers.toString() + "\r");
             try {
-                Thread.sleep(10);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -60,6 +60,7 @@ public class ExecutionLoop {
             return false; // If the opcode is 1, then the loop should stop; halt instruction
         }
 
+
         byte[] registerValues = registers.get(byte01, byte02); // Get the values in the registers
 
 
@@ -70,13 +71,14 @@ public class ExecutionLoop {
 
         // Execute the RAM
         if (opcode == 24) { // STR
-            ram.set(byte02, byte03);
+            ram.set(byte02, byte01);
         } else if (opcode == 25) { // LOD
             registers.set(byte03, ram.get(byte02)); // Get from the ram, set in the registers
         }
         // Execute the stack
         if (opcode == 26) { // CAL
-            stack.push(programCounter.getProgramCounter());
+            stack.push(programCounter.getProgramCounter()); // THE COUNTER WAS INCREMENTED AT THE START OF THE CYCLE
+            // REMEMBER THAT THE COUNTER VALUE IS NOT THE SAME AS THE CURRENT INSTRUCTION, IT IS ONE AHEAD
         } else if (opcode == 27) { // RET
             programCounter.set(stack.pop());
         }
@@ -87,6 +89,12 @@ public class ExecutionLoop {
 
         boolean runCLU = CLU.getOpcode(opcode) != -1;
         boolean setCounter = clu.run(opcode, valueA, valueB); // Execute the CPU.CLU
+
+//        System.out.println("\nBYTES: " +
+//                String.format("%8s", Integer.toBinaryString(byte01)).replace(' ', '0') + " " +
+//                String.format("%8s", Integer.toBinaryString(byte02)).replace(' ', '0') + " " +
+//                String.format("%8s", Integer.toBinaryString(byte03)).replace(' ', '0'));
+//        System.out.println("Op value: " + String.format("%32s", Integer.toBinaryString(instruction)).replace(' ', '0'));
 
         if (runALU) {
             registers.set(byte03, result); // Set the value in the register
