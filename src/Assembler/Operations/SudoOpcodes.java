@@ -17,8 +17,8 @@ public class SudoOpcodes {
         put("cpy", new Object[]{2, "imb", "or"});
         put("not", new Object[]{2, "nor"});
 
-        put("lsh", new Object[]{2, "bsh", "&-9"});
-        put("rsh", new Object[]{2, "bsh", "|8"});
+        put("lsh", new Object[]{3, "bsh", "&-9"});
+        put("rsh", new Object[]{3, "bsh", "|8"});
     }};
 
     public static int[] buildOperation(String opcode) {
