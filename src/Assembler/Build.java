@@ -25,7 +25,7 @@ public class Build {
         System.out.println("PROGRAM: " + Arrays.toString(instructions));
         try {
             File outputFile = new File(filePath.substring(0, filePath.lastIndexOf('.')) + ".bin");
-            if (outputFile.createNewFile()){
+            if (outputFile.createNewFile()) {
                 System.out.println("Created new file");
             }
 
@@ -114,9 +114,15 @@ public class Build {
                 }
             } else if (opData[0] == 2) {
                 String value = non_imm_execution[0];
+                int shiftAmount;
+                if (operation.equals("lod")) {
+                    shiftAmount = 8;
+                } else {
+                    shiftAmount = 16;
+                }
                 if (imm_a) {
                     try {
-                        operationValue |= Integer.parseInt(value) << 16;
+                        operationValue |= Integer.parseInt(value) << shiftAmount;
                     } catch (NumberFormatException e) {
                         System.err.println("Value '" + value + "' is not a number, expected an immediate value.\n" +
                                 "Failed ");
@@ -124,7 +130,7 @@ public class Build {
                     }
                 } else {
                     if (Registers.contains(value)) {
-                        operationValue |= Registers.getRegister(value) << 16;
+                        operationValue |= Registers.getRegister(value) << shiftAmount;
                     } else {
                         System.err.println("Register " + value + " not found, " + value + " might not be a register");
                         System.exit(-1);
@@ -134,17 +140,22 @@ public class Build {
 //                    byte02_value = byte01_value
                     operationValue |= ((operationValue & (0xFF << 16)) >> 8); // Take the value from byte 01, and put it in byte 02
                 }
-// TODO: FINISH REWRITING THE PYTHON CODE TO JAVA
+
                 value = non_imm_execution[1];
+                if (operation.equals("str")) {
+                    shiftAmount = 8;
+                } else {
+                    shiftAmount = 0;
+                }
                 if (Registers.contains(value)) {
 //                    byte03_value = registers.index(value);
-                    operationValue |= Registers.getRegister(value);
+                    operationValue |= Registers.getRegister(value) << shiftAmount;
                 } else if (labels.containsKey(value)) {
 //                    byte03_value = labels[value];
-                    operationValue |= labels.get(value);
+                    operationValue |= labels.get(value) << shiftAmount;
                 } else {
 //                    byte03_value = int(value);
-                    operationValue |= Integer.parseInt(value);
+                    operationValue |= Integer.parseInt(value) << shiftAmount;
                 }
             } else if (opData[0] == 3) {
 
