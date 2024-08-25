@@ -15,13 +15,13 @@ public class Registers {
     }
 
     public void set(byte index, byte value) {
-        index = (byte) (index & 0b0011_1111);
+        index = (byte) (index & 0b0001_1111);
         registers[index] = value;
     }
 
     public byte[] get(byte index_a, byte index_b) {
-        index_a = (byte) (index_a & 0b0011_1111);
-        index_b = (byte) (index_b & 0b0011_1111);
+        index_a = (byte) (index_a & 0b0001_1111);
+        index_b = (byte) (index_b & 0b0001_1111);
         return new byte[]{registers[index_a], registers[index_b]};
     }
 
