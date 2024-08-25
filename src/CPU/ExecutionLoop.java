@@ -20,7 +20,7 @@ public class ExecutionLoop {
         ram = new RAM();
     }
 
-    public ExecutionLoop(int[] program){
+    public ExecutionLoop(int[] program) {
         this();
         programMemory = new ProgramMemory(program);
     }
@@ -28,11 +28,12 @@ public class ExecutionLoop {
     public void loop() {
 
         System.out.println("PROGRAM START\n");
+        long step = 0;
 
         do {
-            System.out.print(programCounter.getProgramCounter() + " : " + registers.toString() + "\r");
+            System.out.print(programCounter.getProgramCounter() + " : " + registers.toString() + " : S" + step++ + "\r");
             try {
-                Thread.sleep(100);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
