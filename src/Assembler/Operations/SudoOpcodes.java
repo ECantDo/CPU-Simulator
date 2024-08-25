@@ -17,8 +17,8 @@ public class SudoOpcodes {
         put("cpy", new Object[]{2, "imb", "or"});
         put("not", new Object[]{2, "nor"});
 
-        put("lsh", new Object[]{3, "bsh"});
-        put("rsh", new Object[]{3, "bsh", "|2048"});
+        put("lsh", new Object[]{3, "bsh", "imb"});
+        put("rsh", new Object[]{3, "bsh", "imb", "|2048"});
     }};
 
     public static int[] buildOperation(String opcode) {
@@ -35,7 +35,7 @@ public class SudoOpcodes {
         int operationValue = 0;
 
         for (int i = 1; i < args.length; i++) {
-            if (Arrays.asList(operations).contains( ((String) args[i]).charAt(0) )) {
+            if (Arrays.asList(operations).contains(((String) args[i]).charAt(0))) {
                 char operation = ((String) args[i]).charAt(0);
                 int value = Integer.parseInt(((String) args[i]).substring(1));
                 switch (operation) {
