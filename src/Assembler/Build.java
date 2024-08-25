@@ -31,7 +31,7 @@ public class Build {
 
             FileWriter writer = new FileWriter(outputFile);
             for (Integer instruction : instructions) {
-                writer.write(String.format("%32s", Integer.toBinaryString(instruction)).replace(' ', '0') + ",\n");
+                writer.write("0b" + String.format("%32s", Integer.toBinaryString(instruction)).replace(' ', '0') + ",\n");
             }
             writer.close();
             System.out.println("Wrote to output file: " + outputFile.getPath());
