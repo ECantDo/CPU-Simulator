@@ -11,18 +11,16 @@ import Assembler.Operations.*;
 public class Build {
 
     public static void main(String[] args) {
-        String filePath = "src\\program.as";
+        String filePath = "src\\ramStackTest.as";
+
+        System.out.println("PROGRAM: " + Arrays.toString(build(filePath)));
+
+    }
+
+    public static int[] build(String filePath) {
         String[] fileContents = formatFile(readFile(filePath));
-
         Map<String, Integer> labels = getLabels(fileContents);
-
-//        System.out.println(Arrays.toString(fileContents));
-//        System.out.println(labels);
-
         Integer[] instructions = assemble(fileContents, labels);
-
-//        System.out.println("Output file: " + outputFile.getPath());
-        System.out.println("PROGRAM: " + Arrays.toString(instructions));
         try {
             File outputFile = new File(filePath.substring(0, filePath.lastIndexOf('.')) + ".bin");
             if (outputFile.createNewFile()) {
@@ -38,6 +36,7 @@ public class Build {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return Arrays.stream(instructions).mapToInt(i -> i).toArray();
     }
 
 
