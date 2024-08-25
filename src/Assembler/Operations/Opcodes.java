@@ -34,7 +34,7 @@ public class Opcodes {
 
         put("str", new int[]{2, 24, 24}); // STORE (ram)
         put("lod", new int[]{2, 25, 24}); // LOAD (ram)
-        put("cal", new int[]{0, 26, 24}); // CALL (stack)
+        put("cal", new int[]{1, 26, 24}); // CALL (stack)
         put("ret", new int[]{0, 27, 24}); // RETURN (stack)
     }};
 

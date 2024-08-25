@@ -78,6 +78,7 @@ public class ExecutionLoop {
         // Execute the stack
         if (opcode == 26) { // CAL
             stack.push(programCounter.getProgramCounter()); // THE COUNTER WAS INCREMENTED AT THE START OF THE CYCLE
+            programCounter.set(byte03);
             // REMEMBER THAT THE COUNTER VALUE IS NOT THE SAME AS THE CURRENT INSTRUCTION, IT IS ONE AHEAD
         } else if (opcode == 27) { // RET
             programCounter.set(stack.pop());
