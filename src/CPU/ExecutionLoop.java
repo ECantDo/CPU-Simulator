@@ -33,7 +33,7 @@ public class ExecutionLoop {
         do {
             System.out.print(programCounter.getProgramCounter() + " : " + registers.toString() + " : S" + step++ + "\r");
             try {
-                Thread.sleep(2000);
+                Thread.sleep(10);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
