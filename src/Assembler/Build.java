@@ -1,12 +1,12 @@
 package Assembler;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 
 import Assembler.Operations.*;
-
-import static Assembler.Operations.Registers.registers;
 
 public class Build {
 
@@ -21,11 +21,30 @@ public class Build {
 
         Integer[] instructions = assemble(fileContents, labels);
 
-        System.out.println(Arrays.toString(instructions));
+//        System.out.println("Output file: " + outputFile.getPath());
+        System.out.println("PROGRAM: " + Arrays.toString(instructions));
+        try {
+            File outputFile = new File(filePath.substring(0, filePath.lastIndexOf('.')) + ".bin");
+            if (outputFile.createNewFile()){
+                System.out.println("Created new file");
+            }
+
+            FileWriter writer = new FileWriter(outputFile);
+            for (Integer instruction : instructions) {
+                writer.write(String.format("%32s", Integer.toBinaryString(instruction)).replace(' ', '0') + ",\n");
+            }
+            writer.close();
+            System.out.println("Wrote to output file: " + outputFile.getPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
     private static Integer[] assemble(String[] fileContents, Map<String, Integer> labels) {
+
+        System.out.println(labels);
+
         ArrayList<Integer> instructions = new ArrayList<>();
 
         for (String line : fileContents) {
@@ -35,9 +54,9 @@ public class Build {
             }
 
             String[] parts = line.split(" ");
-            System.out.println(Arrays.toString(parts));
+//            System.out.println("Parts: " + Arrays.toString(parts));
 
-            int immediates = 0;
+            int numberOfImmediateValues = 0;
             boolean imm_a = false;
             boolean imm_b = false;
             for (String part : parts) { // GET IMMEDIATEs
@@ -54,34 +73,38 @@ public class Build {
                     } else if (part.equals("ima")) {
                         imm_a = true;
                     }
-                    immediates++;
+                    numberOfImmediateValues++;
                     continue;
                 }
                 break;
             }
-            String operation = parts[immediates];
-            System.out.println(operation);
+            String operation = parts[numberOfImmediateValues];
+//            System.out.println("Operation: " + operation);
 
             int[] opData = Opcodes.getOperation(operation);
+
+//            System.out.println("OpData: " + Arrays.toString(opData));
+//            System.out.println("There is an immediate value A: " + imm_a + " B: " + imm_b);
 
             if (opData == null) {
                 System.err.println("Invalid operation: " + operation);
                 System.exit(-1);
             }
-            if (opData[0] != parts.length - immediates - 1) {
+            if (opData[0] != parts.length - numberOfImmediateValues - 1) {
 
                 System.err.println("Invalid operation: '" + operation + "'\nInvalid number of arguments, " +
-                        "expected " + opData[0] + " got " + (parts.length - immediates - 1));
+                        "expected " + opData[0] + " got " + (parts.length - numberOfImmediateValues - 1));
                 System.exit(-1);
             }
 
             operationValue |= opData[1] << opData[2];
 
-            int length = parts.length - immediates - 1;
-            String[] non_imm_execution = Arrays.copyOfRange(parts, immediates + 1, parts.length);
+            int length = parts.length - numberOfImmediateValues - 1;
+            String[] non_imm_execution = Arrays.copyOfRange(parts, numberOfImmediateValues + 1, parts.length);
+//            System.out.println(Arrays.toString(non_imm_execution));
             if (opData[0] == 1) {
 
-                String value = non_imm_execution[1];
+                String value = non_imm_execution[0];
                 if (Registers.contains(value)) {
                     operationValue |= Registers.getRegister(value);
                 } else if (labels.containsKey(value)) {
@@ -90,12 +113,13 @@ public class Build {
                     operationValue |= Integer.parseInt(value);
                 }
             } else if (opData[0] == 2) {
-                String value = non_imm_execution[1];
+                String value = non_imm_execution[0];
                 if (imm_a) {
                     try {
                         operationValue |= Integer.parseInt(value) << 16;
                     } catch (NumberFormatException e) {
-                        System.err.println("Value " + value + " is not a number, expected an immediate");
+                        System.err.println("Value '" + value + "' is not a number, expected an immediate value.\n" +
+                                "Failed ");
                         System.exit(-1);
                     }
                 } else {
@@ -108,69 +132,72 @@ public class Build {
                 }
                 if (operation.equals("not")) {
 //                    byte02_value = byte01_value
-                    operationValue |= ((operationValue & (0xFF << 16)) >> 8);
+                    operationValue |= ((operationValue & (0xFF << 16)) >> 8); // Take the value from byte 01, and put it in byte 02
                 }
 // TODO: FINISH REWRITING THE PYTHON CODE TO JAVA
-                value = non_imm_execution[2]
-                if value in registers:
-                byte03_value = registers.index(value)
-                elif value in labels:
-                byte03_value = labels[value]
-            else:
-                byte03_value = int(value)
+                value = non_imm_execution[1];
+                if (Registers.contains(value)) {
+//                    byte03_value = registers.index(value);
+                    operationValue |= Registers.getRegister(value);
+                } else if (labels.containsKey(value)) {
+//                    byte03_value = labels[value];
+                    operationValue |= labels.get(value);
+                } else {
+//                    byte03_value = int(value);
+                    operationValue |= Integer.parseInt(value);
+                }
+            } else if (opData[0] == 3) {
+
+                String value = non_imm_execution[0];
+                if (imm_a) {
+                    try {
+                        operationValue |= Integer.parseInt(value) << 16;
+                    } catch (NumberFormatException e) {
+                        System.err.println("Value " + value + " is not a number, expected an immediate");
+                        System.exit(-1);
+                    }
+//                    byte01_value = int(value)
+                } else {
+                    if (Registers.contains(value)) {
+//                        byte01_value = registers.index(value);
+                        operationValue |= Registers.getRegister(value) << 16;
+                    } else {
+                        System.err.println("Register " + value + " not found, " + value + " might not be a register");
+                        System.exit(-1);
+                    }
+                }
+
+                value = non_imm_execution[1];
+                if (imm_b) {
+                    try {
+                        operationValue |= Integer.parseInt(value) << 16;
+                    } catch (NumberFormatException e) {
+                        System.err.println("Value " + value + " is not a number, expected an immediate");
+                        System.exit(-1);
+                    }
+                } else {
+                    if (Registers.contains(value)) {
+//                        byte02_value = registers.index(value)
+                        operationValue |= Registers.getRegister(value) << 8;
+                    } else {
+                        System.err.println("Register " + value + " not found, " + value + " might not be a register");
+                    }
+                }
+
+                value = non_imm_execution[2];
+                if (Registers.contains(value)) {
+//                    byte03_value = registers.index(value)
+                    operationValue |= Registers.getRegister(value);
+                } else if (labels.containsKey(value)) {
+//                    byte03_value = labels[value]
+                    operationValue |= labels.get(value);
+                } else {
+//                    byte03_value = int(value)
+                    operationValue |= Integer.parseInt(value);
+                }
             }
-            elif opData[ 0] ==3:
-            if length > 3:
-            raise Exception (f "Too many arguments for opcode {opcode}, expected {arguments} arguments"
-            f " got {len(non_imm_execution[1:])}, (line {idx})")
-            if length < 3:
-            raise Exception (f "Not enough arguments for opcode {opcode}, expected {arguments} arguments,"
-            f " got {len(non_imm_execution[1:])}, (line {idx})")
-
-            value = non_imm_execution[1]
-            if imm_a:
-            if value.isnumeric():
-            byte01_value = int(value)
-                else:
-            raise Exception (
-                    f
-            "Value {non_imm_execution[1]} is not a number, expected an immediate, numeric, value, (line {idx})")
-            else:
-            if value in registers:
-            byte01_value = registers.index(value)
-                else:
-            raise Exception (f "Register {value} not found, "
-            f "value {value} might not be a register, (line {idx})")
-
-            ##
-            value = non_imm_execution[2]
-            if imm_b:
-            if value.isnumeric():
-            byte02_value = int(value)
-                else:
-            raise Exception (
-                    f
-            "Value {non_imm_execution[1]} is not a number, expected an immediate, numeric, value, (line {idx})")
-            else:
-            if value in registers:
-            byte02_value = registers.index(value)
-                else:
-            raise Exception (f "Register {value} not found, "
-            f "value {value} might not be a register, (line {idx})")
-
-            ##
-            value = non_imm_execution[3]
-            if value in registers:
-            byte03_value = registers.index(value)
-            elif value in labels:
-            byte03_value = labels[value]
-            else:
-            byte03_value = int(value)
-                    elif arguments == 0:
-            pass
-        else:
-            raise Exception (f "Opcode {opcode} has {arguments} arguments, but it should have {arguments} arguments"
-            f " got {len(non_imm_execution[1:])}, (line {idx})")
+//        elif arguments == 0:
+//            pass
 
 
             instructions.add(operationValue);
@@ -188,7 +215,7 @@ public class Build {
         int address = 0;
         for (String line : fileContents) {
             if (line.charAt(0) == ':') {
-                labels.put(line.substring(1), address);
+                labels.put(line, address);
                 continue;
             }
             address++;
