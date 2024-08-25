@@ -180,7 +180,7 @@ public class Build {
                 value = non_imm_execution[1];
                 if (imm_b) {
                     try {
-                        operationValue |= Integer.parseInt(value) << 16;
+                        operationValue |= Integer.parseInt(value) << 8;
                     } catch (NumberFormatException e) {
                         System.err.println("Value " + value + " is not a number, expected an immediate");
                         System.exit(-1);
