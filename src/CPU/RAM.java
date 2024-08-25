@@ -1,5 +1,7 @@
 package CPU;
 
+import java.util.Arrays;
+
 public class RAM {
 
 
@@ -17,5 +19,10 @@ public class RAM {
 
     public void set(int address, byte value) {
         ram[address] = value;
+    }
+
+
+    public String toString() {
+        return Arrays.toString(ram);
     }
 }
