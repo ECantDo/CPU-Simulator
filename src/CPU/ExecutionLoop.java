@@ -20,6 +20,11 @@ public class ExecutionLoop {
         ram = new RAM();
     }
 
+    public ExecutionLoop(int[] program){
+        this();
+        programMemory = new ProgramMemory(program);
+    }
+
     public void loop() {
 
         System.out.println("PROGRAM START\n");
