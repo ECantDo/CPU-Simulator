@@ -37,6 +37,10 @@ public class ExecutionLoop {
         System.out.println("Program finished\n\nREGISTERS:");
         System.out.println(registers.toString());
 
+        System.out.println();
+        System.out.println("RAM:");
+        System.out.println(ram.toString());
+
     }
 
     public boolean cycle() {
@@ -71,12 +75,13 @@ public class ExecutionLoop {
 
         // Execute the RAM
         if (opcode == 24) { // STR
-            ram.set(byte02, byte01);
+            ram.set(valueB, valueA);
+            System.out.println("set ram idx: " + valueB + " val: " + valueA);
         } else if (opcode == 25) { // LOD
-            registers.set(byte03, ram.get(byte02)); // Get from the ram, set in the registers
+            registers.set(byte03, ram.get(valueB)); // Get from the ram, set in the registers
         }
         // Execute the stack
-        if (opcode == 26) { // CAL
+        else if (opcode == 26) { // CAL
             stack.push(programCounter.getProgramCounter()); // THE COUNTER WAS INCREMENTED AT THE START OF THE CYCLE
             programCounter.set(byte03);
             // REMEMBER THAT THE COUNTER VALUE IS NOT THE SAME AS THE CURRENT INSTRUCTION, IT IS ONE AHEAD
