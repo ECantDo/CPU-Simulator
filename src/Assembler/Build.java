@@ -186,11 +186,17 @@ public class Build {
                         System.exit(-1);
                     }
                 } else {
+                    if (operation.equals("rsh") || operation.equals("lsh")) {
+                        System.err.println("Operation " + operation + " requires an immediate value, not a register");
+                        System.exit(-1);
+                    }
+
                     if (Registers.contains(value)) {
 //                        byte02_value = registers.index(value)
                         operationValue |= Registers.getRegister(value) << 8;
                     } else {
                         System.err.println("Register " + value + " not found, " + value + " might not be a register");
+                        System.exit(-1);
                     }
                 }
 
