@@ -99,7 +99,7 @@ public class ExecutionLoop {
         } else if (opcode == 27) { // RET
             programCounter.set(stack.pop());
         } else if (opcode == 28) { // IO Out
-            io.ioOutput(valueA, byte03);
+            io.ioOutput(valueA + (valueB << 8), byte03);
         } else if(opcode == 29) { // IO In
             registers.set(byte03, (byte)io.ioInput(valueA));
         }
