@@ -9,22 +9,16 @@ import ast
 
 
 class Screen:
-    def __init__(self, display: LampDisplay | None = None):
-        if display is None:
-            self.display: LampDisplay = LampDisplay((64, 64), 16)
-        else:
-            self.display = display
+    def __init__(self):
 
+        self.display: LampDisplay = LampDisplay((64, 64), 16)
+        self.buffer = [False] * 64 * 64
+        self.display.update()
         pass
 
-    def loop(self):
-        duration = 3  # seconds
-        for _ in range(duration * 5):
-            time.sleep(duration / 20)
-            self.update()
-
     def clear(self):
-        self.display.clear()
+        # self.display.clear()
+        self.buffer = [False] * 64 * 64
         pass
 
     def update(self):
@@ -32,7 +26,17 @@ class Screen:
         pass
 
     def set_pixel(self, location: tuple[int, int], color):
-        self.display.set_pixel(location, color)
+        # self.display.set_pixel(location, color)
+        self.buffer[location[1] * 64 + location[0]] = color
+        pass
+
+    def update_display(self):
+        print("Updating Display")
+        for y in range(64):
+            for x in range(64):
+                if self.buffer[y * 64 + x]:
+                    print("Pixel", x, y)
+                self.display.set_pixel((x, y), self.buffer[y * 64 + x])
         pass
 
 
@@ -56,7 +60,7 @@ def screen_threading(fps: int = 30):
         if execution[0] == "stop":
             running = False
             break
-        # print(', '.join(map(str, execution[1:])))
+        print(', '.join(map(str, execution[1:])))
         exec(f"screen.{execution[0]}({'*' if len(execution) > 1 else ''}{str(', '.join(map(str, execution[1:])))})")
         screen.update()
 
@@ -84,6 +88,8 @@ def socket_handler():
             execution = ["stop"]
         elif msg_recv == "Clear":
             execution = ["clear"]
+        elif msg_recv == "Update Display":
+            execution = ["update_display"]
         elif msg_recv[:2] == "PP":
             # print(msg_recv[3:])
             execution = ["set_pixel", ast.literal_eval(msg_recv[3:])]

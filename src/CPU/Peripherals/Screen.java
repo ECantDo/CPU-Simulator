@@ -38,15 +38,26 @@ public class Screen {
         }
     }
 
-//======================================================================================================================
+    //======================================================================================================================
 // Input Functions
 //======================================================================================================================
-    public void ioInput(int data){
+    public void ioInput(int data) {
+        int x_coord = data & 0x3F;
+        int y_coord = (data >> 8) & 0x3F;
+        int opcode = ((data >> 8) & 0xC0) >> 6;
+
+        if (opcode == 0) {
+            this.putPixel(x_coord, y_coord, true);
+        } else if (opcode == 1) {
+            this.putPixel(x_coord, y_coord, false);
+        } else if (opcode == 2) {
+            this.clear();
+        }
 
     }
 
 
-//======================================================================================================================
+    //======================================================================================================================
 // Setup Functions
 //======================================================================================================================
     public void setupExit() {
@@ -74,35 +85,35 @@ public class Screen {
     public Process startPythonProgram() {
         Process p = null;
         String directory = System.getProperty("user.dir");
-//        System.out.println(directory);
-//        directory += "\\src\\CPU\\Peripherals\\runPythonCmd.bat";
-//        System.out.println("cmd /c start \"PYTHON OUTPUT \" " + directory);
-//        try {
-//            p = Runtime.getRuntime().exec("cmd /c start \"PYTHON OUTPUT \" " + directory);
-//            p.waitFor();
-//        } catch (IOException e) {
-//        } catch (InterruptedException e) {
-//        }
-//        return p;
+        System.out.println(directory);
+        directory += "\\src\\CPU\\Peripherals\\runPythonCmd.bat";
+        System.out.println("cmd /c start \"PYTHON OUTPUT \" " + directory);
+        try {
+            p = Runtime.getRuntime().exec("cmd /c start \"PYTHON OUTPUT \" " + directory);
+            p.waitFor();
+        } catch (IOException e) {
+        } catch (InterruptedException e) {
+        }
+        return p;
 
 
         // TODO: Change back to the following when finished.
 
-        directory += "\\src\\CPU\\Peripherals\\Python\\Screen.py";
-        String runCommand = "python " + directory;
-
-
-        System.out.println(runCommand);
-
-        try {
-            p = Runtime.getRuntime().exec(runCommand, new String[]{""} /*Arguments*/);
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
-        return p;
+//        directory += "\\src\\CPU\\Peripherals\\Python\\Screen.py";
+//        String runCommand = "python " + directory;
+//
+//
+//        System.out.println(runCommand);
+//
+//        try {
+//            p = Runtime.getRuntime().exec(runCommand, new String[]{""} /*Arguments*/);
+//
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            System.exit(-1);
+//        }
+//        return p;
     }
 
     public Socket setupClient() {
@@ -153,6 +164,18 @@ public class Screen {
         // Talk to the python program here.
         try {
             DOUT.writeUTF("Clear");
+            DOUT.flush();
+
+            waitForScreen();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void update() {
+        try {
+            DOUT.writeUTF("Update Display");
             DOUT.flush();
 
             waitForScreen();
