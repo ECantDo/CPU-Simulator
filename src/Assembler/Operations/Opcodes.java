@@ -36,6 +36,8 @@ public class Opcodes {
         put("lod", new int[]{2, 25, 24}); // LOAD (ram)
         put("cal", new int[]{1, 26, 24}); // CALL (stack)
         put("ret", new int[]{0, 27, 24}); // RETURN (stack)
+        put("out", new int[]{3, 28, 24}); // IO OUTPUT
+        put("in", new int[]{2, 29 + 128, 24}); // IO INPUT
     }};
 
     //==================================================================================================================
