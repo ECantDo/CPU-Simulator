@@ -9,6 +9,7 @@ public class ExecutionLoop {
     ProgramMemory programMemory;
     Stack stack;
     RAM ram;
+    IO io;
     int speed;
 
     public ExecutionLoop() {
@@ -19,6 +20,7 @@ public class ExecutionLoop {
         programMemory = new ProgramMemory();
         stack = new Stack();
         ram = new RAM();
+        io = new IO();
         speed = 10;
     }
 
@@ -87,7 +89,7 @@ public class ExecutionLoop {
             ram.set(valueB, valueA);
 //            System.out.println("set ram idx: " + valueB + " val: " + valueA);
         } else if (opcode == 25) { // LOD
-            registers.set(byte03, (byte)ram.get(valueB)); // Get from the ram, set in the registers
+            registers.set(byte03, (byte) ram.get(valueB)); // Get from the ram, set in the registers
         }
         // Execute the stack
         else if (opcode == 26) { // CAL
@@ -96,6 +98,10 @@ public class ExecutionLoop {
             // REMEMBER THAT THE COUNTER VALUE IS NOT THE SAME AS THE CURRENT INSTRUCTION, IT IS ONE AHEAD
         } else if (opcode == 27) { // RET
             programCounter.set(stack.pop());
+        } else if (opcode == 28) { // IO Out
+            io.ioOutput(valueA, byte03);
+        } else if(opcode == 29) { // IO In
+            registers.set(byte03, (byte)io.ioInput(valueA));
         }
 
         // Execute the CPU.ALU and CPU.CLU
