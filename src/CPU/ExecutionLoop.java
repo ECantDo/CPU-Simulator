@@ -82,9 +82,9 @@ public class ExecutionLoop {
         // Execute the RAM
         if (opcode == 24) { // STR
             ram.set(valueB, valueA);
-            System.out.println("set ram idx: " + valueB + " val: " + valueA);
+//            System.out.println("set ram idx: " + valueB + " val: " + valueA);
         } else if (opcode == 25) { // LOD
-            registers.set(byte03, ram.get(valueB)); // Get from the ram, set in the registers
+            registers.set(byte03, (byte)ram.get(valueB)); // Get from the ram, set in the registers
         }
         // Execute the stack
         else if (opcode == 26) { // CAL
