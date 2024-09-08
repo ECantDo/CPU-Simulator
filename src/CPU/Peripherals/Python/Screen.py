@@ -11,7 +11,7 @@ import ast
 class Screen:
     def __init__(self, display: LampDisplay | None = None):
         if display is None:
-            self.display: LampDisplay = LampDisplay((32, 32), 32)
+            self.display: LampDisplay = LampDisplay((64, 64), 16)
         else:
             self.display = display
 
