@@ -9,6 +9,7 @@ public class ExecutionLoop {
     ProgramMemory programMemory;
     Stack stack;
     RAM ram;
+    int speed;
 
     public ExecutionLoop() {
         programCounter = new ProgramCounter();
@@ -18,11 +19,13 @@ public class ExecutionLoop {
         programMemory = new ProgramMemory();
         stack = new Stack();
         ram = new RAM();
+        speed = 10;
     }
 
-    public ExecutionLoop(int[] program) {
+    public ExecutionLoop(int[] program, int speed) {
         this();
         programMemory = new ProgramMemory(program);
+        this.speed = speed;
     }
 
     public void loop() {
@@ -33,7 +36,7 @@ public class ExecutionLoop {
         do {
             System.out.print(programCounter.getProgramCounter() + " : " + registers.toString() + " : S" + step++ + "\r");
             try {
-                Thread.sleep(10);
+                Thread.sleep(speed);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
