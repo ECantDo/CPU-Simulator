@@ -96,6 +96,14 @@ public class Build {
                 System.exit(-1);
             }
 
+            // Opdata immediate values; set the immediate value if the opcode has the immediate bit set
+            if ((opData[0] & 128) == 128) {
+                imm_a = true;
+            }
+            if ((opData[0] & 64) == 64) {
+                imm_b = true;
+            }
+
             operationValue |= opData[1] << opData[2];
 
             int length = parts.length - numberOfImmediateValues - 1;
