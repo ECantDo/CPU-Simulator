@@ -5,7 +5,7 @@ import java.net.*;
 import java.lang.*;
 
 
-public class Screen {
+public class Screen implements IOInterface {
 
     private Process PROCESS;
     private Socket SOCKET;
@@ -44,16 +44,21 @@ public class Screen {
     public void ioInput(int data) {
         int x_coord = data & 0x3F;
         int y_coord = (data >> 8) & 0x3F;
-        int opcode = ((data >> 8) & 0xC0) >> 6;
+        int opcode = ((data >> 14) & 0b11);
 
-        if (opcode == 0) {
+        if (opcode == 0b00) {
             this.putPixel(x_coord, y_coord, true);
-        } else if (opcode == 1) {
+        } else if (opcode == 0b01) {
             this.putPixel(x_coord, y_coord, false);
-        } else if (opcode == 2) {
+        } else if (opcode == 0b10) {
             this.clear();
+        } else if (opcode == 0b11) { // Always true as there is no other options that there could be
+            this.update();
         }
+    }
 
+    public int ioOutput() {
+        return 0;
     }
 
 
