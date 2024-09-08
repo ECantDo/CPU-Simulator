@@ -5,20 +5,20 @@ import java.util.Arrays;
 public class RAM {
 
 
-    private byte[] ram;// = new byte[256];
+    private int[] ram;// = new byte[256];
 
     public RAM() {
         int byteCount = 8;
-        ram = new byte[(int) Math.pow(2, byteCount)];
+        ram = new int[(int) Math.pow(2, byteCount)];
     }
 
 
-    public byte get(int address) {
-        return ram[address];
+    public int get(int address) {
+        return ram[address] & 0xFF;
     }
 
-    public void set(int address, byte value) {
-        ram[address] = value;
+    public void set(int address, int value) {
+        ram[address] = value & 0xFF;
     }
 
 
