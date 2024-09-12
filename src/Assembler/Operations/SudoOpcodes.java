@@ -19,6 +19,9 @@ public class SudoOpcodes {
 
         put("lsh", new Object[]{3, "bsh", "imb"});
         put("rsh", new Object[]{3, "bsh", "imb", "|2048"});
+
+        put("uscr", new Object[]{0, "ima", "imb", "out", "|49152"});
+        put("cscr", new Object[]{0, "ima", "imb", "out", "|32768"});
     }};
 
     public static int[] buildOperation(String opcode) {
