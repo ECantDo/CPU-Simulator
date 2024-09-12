@@ -34,8 +34,8 @@ class Screen:
         print("Updating Display")
         for y in range(64):
             for x in range(64):
-                if self.buffer[y * 64 + x]:
-                    print("Pixel", x, y)
+                # if self.buffer[y * 64 + x]:
+                    # print("Pixel", x, y)
                 self.display.set_pixel((x, y), self.buffer[y * 64 + x])
         pass
 
@@ -84,8 +84,9 @@ def socket_handler():
 
         # Decode Message
         print("From Client: ", msg_recv)
-        if msg_recv == "Stop":
+        if msg_recv.find("Stop") != -1:
             execution = ["stop"]
+            # exit_handler()
         elif msg_recv == "Clear":
             execution = ["clear"]
         elif msg_recv == "Update Display":
@@ -137,6 +138,7 @@ def exit_handler():
     global network
     network.close()
     print("Socket Closed.")
+    # time.sleep(10)
     # input("Press Enter To Exit.")
 
 
