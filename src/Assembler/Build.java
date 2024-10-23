@@ -18,6 +18,11 @@ public class Build {
     }
 
     public static int[] build(String filePath) {
+        if (filePath == null) {
+            throw new IllegalArgumentException("File path cannot be null");
+        }
+
+
         String[] fileContents = formatFile(readFile(filePath));
         Map<String, Integer> labels = getLabels(fileContents);
         Integer[] instructions = assemble(fileContents, labels);
@@ -41,6 +46,12 @@ public class Build {
 
 
     private static Integer[] assemble(String[] fileContents, Map<String, Integer> labels) {
+        if (fileContents == null) {
+            throw new IllegalArgumentException("File Contents Array cannot be null");
+        }
+        if (labels == null) {
+            throw new IllegalArgumentException("Labels Map cannot be null");
+        }
 
         System.out.println(labels);
 
@@ -144,7 +155,6 @@ public class Build {
                     }
                 }
                 if (operation.equals("not")) {
-//                    byte02_value = byte01_value
                     operationValue |= ((operationValue & (0xFF << 16)) >> 8); // Take the value from byte 01, and put it in byte 02
                 }
 
@@ -155,13 +165,10 @@ public class Build {
                     shiftAmount = 0;
                 }
                 if (Registers.contains(value)) {
-//                    byte03_value = registers.index(value);
                     operationValue |= Registers.getRegister(value) << shiftAmount;
                 } else if (labels.containsKey(value)) {
-//                    byte03_value = labels[value];
                     operationValue |= labels.get(value) << shiftAmount;
                 } else {
-//                    byte03_value = int(value);
                     operationValue |= Integer.parseInt(value) << shiftAmount;
                 }
             } else if (opData[0] == 3) {
@@ -174,10 +181,8 @@ public class Build {
                         System.err.println("Value " + value + " is not a number, expected an immediate");
                         System.exit(-1);
                     }
-//                    byte01_value = int(value)
                 } else {
                     if (Registers.contains(value)) {
-//                        byte01_value = registers.index(value);
                         operationValue |= Registers.getRegister(value) << 16;
                     } else {
                         System.err.println("Register " + value + " not found, " + value + " might not be a register");
@@ -200,7 +205,6 @@ public class Build {
                     }
 
                     if (Registers.contains(value)) {
-//                        byte02_value = registers.index(value)
                         operationValue |= Registers.getRegister(value) << 8;
                     } else {
                         System.err.println("Register " + value + " not found, " + value + " might not be a register");
@@ -210,19 +214,13 @@ public class Build {
 
                 value = non_imm_execution[2];
                 if (Registers.contains(value)) {
-//                    byte03_value = registers.index(value)
                     operationValue |= Registers.getRegister(value);
                 } else if (labels.containsKey(value)) {
-//                    byte03_value = labels[value]
                     operationValue |= labels.get(value);
                 } else {
-//                    byte03_value = int(value)
                     operationValue |= Integer.parseInt(value);
                 }
             }
-//        elif arguments == 0:
-//            pass
-
 
             instructions.add(operationValue);
         }
@@ -235,6 +233,10 @@ public class Build {
      * @param fileContents the contents of the file, formatted
      */
     private static Map<String, Integer> getLabels(String[] fileContents) {
+        if (fileContents == null) {
+            throw new IllegalArgumentException("File Contents Array cannot be null");
+        }
+
         Map<String, Integer> labels = new HashMap<>();
         int address = 0;
         for (String line : fileContents) {
@@ -248,6 +250,10 @@ public class Build {
     }
 
     private static String[] formatFile(String[] fileContents) {
+        if (fileContents == null) {
+            throw new IllegalArgumentException("File Contents Array cannot be null");
+        }
+
         ArrayList<String> lines = new ArrayList<>();
         for (String line : fileContents) {
             line = line.trim();
@@ -264,6 +270,10 @@ public class Build {
     }
 
     private static String[] readFile(String filePath) {
+        if (filePath == null) {
+            throw new IllegalArgumentException("File path cannot be null");
+        }
+
         try {
             File file = new File(filePath);
             Scanner myReader = new Scanner(file);
