@@ -6,17 +6,19 @@ public class Stack {
     private int stackPointer;
 
     public Stack() {
-        stack = new int[32];
+        stack = new int[16];
         stackPointer = 0;
     }
 
     public void push(int value) {
-        stack[stackPointer] = value;
-        stackPointer++;
+        try {
+            stack[stackPointer++] = value;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new StackOverflowError("Custom Stack Overflow Error");
+        }
     }
 
     public int pop() {
-        stackPointer--;
-        return stack[stackPointer];
+        return stack[--stackPointer];
     }
 }
