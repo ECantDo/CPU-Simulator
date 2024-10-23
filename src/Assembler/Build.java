@@ -17,6 +17,12 @@ public class Build {
 
     }
 
+    /**
+     * Logic that sequences the build cycle
+     *
+     * @param filePath The file path that contains the source code (custom .as file)
+     * @return An array of integers of the assembled program - custom machine code
+     */
     public static int[] build(String filePath) {
         if (filePath == null) {
             throw new IllegalArgumentException("File path cannot be null");
@@ -44,7 +50,13 @@ public class Build {
         return Arrays.stream(instructions).mapToInt(i -> i).toArray();
     }
 
-
+    /**
+     * Main assembler logic.  Converts the file into an array of integers
+     *
+     * @param fileContents The contents of the file as a String array
+     * @param labels       The labels in the file
+     * @return An array of integers of the assembled program
+     */
     private static Integer[] assemble(String[] fileContents, Map<String, Integer> labels) {
         if (fileContents == null) {
             throw new IllegalArgumentException("File Contents Array cannot be null");
@@ -57,7 +69,13 @@ public class Build {
 
         ArrayList<Integer> instructions = new ArrayList<>();
 
-        for (String line : fileContents) {
+        for (int lineNumber = 0; lineNumber < fileContents.length; lineNumber++) {
+            String line = fileContents[lineNumber];
+
+            if (line.isBlank()) {
+                continue;
+            }
+
             int operationValue = 0;
             if (line.charAt(0) == ':') { // Skip labels
                 continue;
@@ -72,7 +90,7 @@ public class Build {
             for (String part : parts) { // GET IMMEDIATEs
                 int[] opData = Opcodes.getOperation(part);
                 if (opData == null) {
-                    System.err.println("Invalid operation: " + part);
+                    System.err.println("Invalid operation: " + part + "\nLine: " + line);
                     System.exit(-1);
                 }
 
@@ -97,13 +115,14 @@ public class Build {
 //            System.out.println("There is an immediate value A: " + imm_a + " B: " + imm_b);
 
             if (opData == null) {
-                System.err.println("Invalid operation: " + operation);
+                System.err.println("Invalid operation: " + operation + "\nLine: " + line);
                 System.exit(-1);
             }
             if (opData[0] != parts.length - numberOfImmediateValues - 1) {
 
                 System.err.println("Invalid operation: '" + operation + "'\nInvalid number of arguments, " +
-                        "expected " + opData[0] + " got " + (parts.length - numberOfImmediateValues - 1));
+                        "expected " + opData[0] + " got " + (parts.length - numberOfImmediateValues - 1) +
+                        "\nLine: " + line);
                 System.exit(-1);
             }
 
@@ -142,15 +161,16 @@ public class Build {
                     try {
                         operationValue |= Integer.parseInt(value) << shiftAmount;
                     } catch (NumberFormatException e) {
-                        System.err.println("Value '" + value + "' is not a number, expected an immediate value.\n" +
-                                "Failed ");
+                        System.err.println("Value '" + value + "' is not a number, expected an immediate value." +
+                                "\nLine: " + line);
                         System.exit(-1);
                     }
                 } else {
                     if (Registers.contains(value)) {
                         operationValue |= Registers.getRegister(value) << shiftAmount;
                     } else {
-                        System.err.println("Register " + value + " not found, " + value + " might not be a register");
+                        System.err.println("Register " + value + " not found, " + value + " might not be a register" +
+                                "\nLine: " + line);
                         System.exit(-1);
                     }
                 }
@@ -178,14 +198,15 @@ public class Build {
                     try {
                         operationValue |= Integer.parseInt(value) << 16;
                     } catch (NumberFormatException e) {
-                        System.err.println("Value " + value + " is not a number, expected an immediate");
+                        System.err.println("Value " + value + " is not a number, expected an immediate\nLine: " + line);
                         System.exit(-1);
                     }
                 } else {
                     if (Registers.contains(value)) {
                         operationValue |= Registers.getRegister(value) << 16;
                     } else {
-                        System.err.println("Register " + value + " not found, " + value + " might not be a register");
+                        System.err.println("Register " + value + " not found, " + value + " might not be a register" +
+                                "\nLine: " + line);
                         System.exit(-1);
                     }
                 }
@@ -195,19 +216,21 @@ public class Build {
                     try {
                         operationValue |= Integer.parseInt(value) << 8;
                     } catch (NumberFormatException e) {
-                        System.err.println("Value " + value + " is not a number, expected an immediate");
+                        System.err.println("Value " + value + " is not a number, expected an immediate\nLine: " + line);
                         System.exit(-1);
                     }
                 } else {
                     if (operation.equals("rsh") || operation.equals("lsh")) {
-                        System.err.println("Operation " + operation + " requires an immediate value, not a register");
+                        System.err.println("Operation " + operation + " requires an immediate value, not a register" +
+                                "\nLine: " + line);
                         System.exit(-1);
                     }
 
                     if (Registers.contains(value)) {
                         operationValue |= Registers.getRegister(value) << 8;
                     } else {
-                        System.err.println("Register " + value + " not found, " + value + " might not be a register");
+                        System.err.println("Register " + value + " not found, " + value + " might not be a register" +
+                                "\nLine: " + line);
                         System.exit(-1);
                     }
                 }
@@ -249,26 +272,36 @@ public class Build {
         return labels;
     }
 
+    /**
+     * Removes comments and in-line comments from the file.  Keeps the number of lines the same
+     *
+     * @param fileContents The contents of the file as a String array
+     * @return The formatted file as a String array
+     */
     private static String[] formatFile(String[] fileContents) {
         if (fileContents == null) {
             throw new IllegalArgumentException("File Contents Array cannot be null");
         }
 
-        ArrayList<String> lines = new ArrayList<>();
-        for (String line : fileContents) {
+        String[] lines = new String[fileContents.length];
+        for (int i = 0; i < fileContents.length; i++) {
+            String line = fileContents[i];
             line = line.trim();
-            if (line.isBlank()) { // Remove blank lines
-                continue;
-            }
             if (line.startsWith("//")) { // Remove comments
-                continue;
+                line = "";
             }
             line = line.split("//")[0]; // Remove in-line comments
-            lines.add(line);
+            lines[i] = line;
         }
-        return lines.toArray(new String[0]);
+        return lines;
     }
 
+    /**
+     * Reads from a .as file and returns an array of strings containing the contents of the file.
+     *
+     * @param filePath The path to the .as file
+     * @return An array of strings containing the contents of the file
+     */
     private static String[] readFile(String filePath) {
         if (filePath == null) {
             throw new IllegalArgumentException("File path cannot be null");
@@ -284,7 +317,7 @@ public class Build {
             myReader.close();
             return lines.toArray(new String[0]);
         } catch (FileNotFoundException e) {
-            System.err.println("An error occurred.  File likely not found.");
+            System.err.println("An error occurred. File not found.");
             e.printStackTrace();
             System.exit(-1);
             return null;
