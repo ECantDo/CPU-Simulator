@@ -62,7 +62,7 @@ public class Screen implements IOInterface {
     }
 
 
-    //======================================================================================================================
+//======================================================================================================================
 // Setup Functions
 //======================================================================================================================
     public void setupExit() {
@@ -73,7 +73,7 @@ public class Screen implements IOInterface {
 
                 try {
                     DOUT.writeUTF("Stop");
-                    System.out.println("Stop Message Sent");
+                    System.out.println("\nStop Message Sent");
                     DOUT.flush();
                     DOUT.close();
                     SOCKET.close();
@@ -90,35 +90,35 @@ public class Screen implements IOInterface {
     public Process startPythonProgram() {
         Process p = null;
         String directory = System.getProperty("user.dir");
-//        System.out.println(directory);
-//        directory += "\\src\\CPU\\Peripherals\\runPythonCmd.bat";
-//        System.out.println("cmd /c start \"PYTHON OUTPUT \" " + directory);
-//        try {
-//            p = Runtime.getRuntime().exec("cmd /c start \"PYTHON OUTPUT \" " + directory);
-//            p.waitFor();
-//        } catch (IOException e) {
-//        } catch (InterruptedException e) {
-//        }
-//        return p;
+        System.out.println(directory);
+        directory += "\\src\\CPU\\Peripherals\\runPythonCmd.bat";
+        System.out.println("cmd /c start \"PYTHON OUTPUT \" " + directory);
+        try {
+            p = Runtime.getRuntime().exec("cmd /c start \"PYTHON OUTPUT \" " + directory);
+            p.waitFor();
+        } catch (IOException e) {
+        } catch (InterruptedException e) {
+        }
+        return p;
 
 
         // TODO: Change back to the following when finished.
 
-        directory += "\\src\\CPU\\Peripherals\\Python\\Screen.py";
-        String runCommand = "python " + directory;
-
-
-        System.out.println(runCommand);
-
-        try {
-            p = Runtime.getRuntime().exec(runCommand, new String[]{""} /*Arguments*/);
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
-        return p;
+//        directory += "\\src\\CPU\\Peripherals\\Python\\Screen.py";
+//        String runCommand = "python " + directory;
+//
+//
+//        System.out.println(runCommand);
+//
+//        try {
+//            p = Runtime.getRuntime().exec(runCommand, new String[]{""} /*Arguments*/);
+//
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            System.exit(-1);
+//        }
+//        return p;
     }
 
     public Socket setupClient() {
