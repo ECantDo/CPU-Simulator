@@ -13,8 +13,25 @@ public class Build {
     public static void main(String[] args) {
         String filePath = "src\\ramStackTest.as";
 
-        System.out.println("PROGRAM: " + Arrays.toString(build(filePath)));
+        int[] program = build(filePath);
+        System.out.println("PROGRAM: " + Arrays.toString(program));
 
+        runBuildToSchem("E:\\IntelliJProjects\\CpuEmulator\\src\\ramStackTest.bin");
+    }
+
+    public static void runBuildToSchem(String filePath) {
+        String directory = System.getProperty("user.dir");
+//        System.out.println(directory);
+        directory += "\\src\\Assembler\\runBuildToSchem.bat";
+        String command = "cmd /c start ";
+
+        try {
+            ProcessBuilder pb = new ProcessBuilder("cmd", "/c", "start", directory, filePath);
+//            pb.directory(new File(directory));
+            Process p = pb.start();
+        } catch (IOException e) {
+            System.err.println("Failed to run .bat\n" + e.getMessage());
+        }
     }
 
     /**
@@ -120,9 +137,7 @@ public class Build {
             }
             if (opData[0] != parts.length - numberOfImmediateValues - 1) {
 
-                System.err.println("Invalid operation: '" + operation + "'\nInvalid number of arguments, " +
-                        "expected " + opData[0] + " got " + (parts.length - numberOfImmediateValues - 1) +
-                        "\nLine: " + line);
+                System.err.println("Invalid operation: '" + operation + "'\nInvalid number of arguments, " + "expected " + opData[0] + " got " + (parts.length - numberOfImmediateValues - 1) + "\nLine: " + line);
                 System.exit(-1);
             }
 
@@ -161,16 +176,14 @@ public class Build {
                     try {
                         operationValue |= Integer.parseInt(value) << shiftAmount;
                     } catch (NumberFormatException e) {
-                        System.err.println("Value '" + value + "' is not a number, expected an immediate value." +
-                                "\nLine: " + line);
+                        System.err.println("Value '" + value + "' is not a number, expected an immediate value." + "\nLine: " + line);
                         System.exit(-1);
                     }
                 } else {
                     if (Registers.contains(value)) {
                         operationValue |= Registers.getRegister(value) << shiftAmount;
                     } else {
-                        System.err.println("Register " + value + " not found, " + value + " might not be a register" +
-                                "\nLine: " + line);
+                        System.err.println("Register " + value + " not found, " + value + " might not be a register" + "\nLine: " + line);
                         System.exit(-1);
                     }
                 }
@@ -205,8 +218,7 @@ public class Build {
                     if (Registers.contains(value)) {
                         operationValue |= Registers.getRegister(value) << 16;
                     } else {
-                        System.err.println("Register " + value + " not found, " + value + " might not be a register" +
-                                "\nLine: " + line);
+                        System.err.println("Register " + value + " not found, " + value + " might not be a register" + "\nLine: " + line);
                         System.exit(-1);
                     }
                 }
@@ -221,16 +233,14 @@ public class Build {
                     }
                 } else {
                     if (operation.equals("rsh") || operation.equals("lsh")) {
-                        System.err.println("Operation " + operation + " requires an immediate value, not a register" +
-                                "\nLine: " + line);
+                        System.err.println("Operation " + operation + " requires an immediate value, not a register" + "\nLine: " + line);
                         System.exit(-1);
                     }
 
                     if (Registers.contains(value)) {
                         operationValue |= Registers.getRegister(value) << 8;
                     } else {
-                        System.err.println("Register " + value + " not found, " + value + " might not be a register" +
-                                "\nLine: " + line);
+                        System.err.println("Register " + value + " not found, " + value + " might not be a register" + "\nLine: " + line);
                         System.exit(-1);
                     }
                 }
@@ -263,6 +273,9 @@ public class Build {
         Map<String, Integer> labels = new HashMap<>();
         int address = 0;
         for (String line : fileContents) {
+            if (line.isEmpty()) {
+                continue;
+            }
             if (line.charAt(0) == ':') {
                 labels.put(line, address);
                 continue;
