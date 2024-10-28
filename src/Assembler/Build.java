@@ -11,7 +11,7 @@ import Assembler.Operations.*;
 public class Build {
 
     public static void main(String[] args) {
-        String filePath = "src\\ramStackTest.as";
+        String filePath = "src\\program.as";
 
         int[] program = build(filePath);
         System.out.println("PROGRAM: " + Arrays.toString(program));
@@ -48,6 +48,13 @@ public class Build {
 
         String[] fileContents = formatFile(readFile(filePath));
         Map<String, Integer> labels = getLabels(fileContents);
+        Map<String, Integer> constants = getConstants(fileContents);
+
+        replaceConstants(fileContents, constants);
+        for (String line : fileContents) {
+            System.out.println(line);
+        }
+
         Integer[] instructions = assemble(fileContents, labels);
         try {
             File outputFile = new File(filePath.substring(0, filePath.lastIndexOf('.')) + ".bin");
@@ -90,6 +97,10 @@ public class Build {
             String line = fileContents[lineNumber];
 
             if (line.isBlank()) {
+                continue;
+            }
+
+            if (line.startsWith("const ")) {
                 continue;
             }
 
@@ -284,6 +295,65 @@ public class Build {
         }
         return labels;
     }
+
+    /**
+     * Gets the constant values from the file, and returns them in a map
+     *
+     * @param fileContents The .as file contents
+     * @return The map of constants <String Value, Integer Value>
+     */
+    private static Map<String, Integer> getConstants(String[] fileContents) {
+        if (fileContents == null) {
+            throw new IllegalArgumentException("File Contents Array cannot be null");
+        }
+
+        Map<String, Integer> constants = new HashMap<>();
+        for (int i = 0; i < fileContents.length; i++) {
+            String line = fileContents[i].trim();
+            if (line.isEmpty()) {
+                continue;
+            }
+            if (!line.startsWith("const ")) {
+                continue;
+            }
+            String[] split = line.split(" ");
+
+            try {
+                constants.put(split[1], Integer.parseInt(split[2]));
+            } catch (NumberFormatException e) {
+                System.err.println("Value " + split[2] + " is not a number, expected a constant\nLine: " + line +
+                        " (" + i + ")");
+                System.exit(-1);
+            }
+        }
+        return constants;
+    }
+
+    public static void replaceConstants(String[] fileContents, Map<String, Integer> constants) {
+        if (fileContents == null) {
+            throw new IllegalArgumentException("File Contents Array cannot be null");
+        }
+
+        for (Map.Entry<String, Integer> entry : constants.entrySet()) {
+            for (int i = 0; i < fileContents.length; i++) {
+                String line = fileContents[i].trim();
+                if (line.isEmpty()) {
+                    continue;
+                }
+                if (line.startsWith("const ")) {
+                    continue;
+                }
+                String[] split = line.split(" ");
+                for (int j = 0; j < split.length; j++) {
+                    if (split[j].equals(entry.getKey())) {
+                        fileContents[i] = fileContents[i].replace(split[j], Integer.toString(entry.getValue()));
+                    }
+                }
+            }
+        }
+    }
+
+
 
     /**
      * Removes comments and in-line comments from the file.  Keeps the number of lines the same
