@@ -124,7 +124,7 @@ public class Screen implements IOInterface {
     public Socket setupClient() {
         Socket socket = null;
         try {
-            socket = new Socket("localhost", 50505);
+            socket = new Socket("localhost", 5005);
             DataOutputStream dout = new DataOutputStream(socket.getOutputStream());
             DataInputStream in = new DataInputStream(socket.getInputStream());
             String msg = (String) in.readUTF();

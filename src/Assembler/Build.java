@@ -15,8 +15,6 @@ public class Build {
 
         int[] program = build(filePath);
         System.out.println("PROGRAM: " + Arrays.toString(program));
-
-        runBuildToSchem("E:\\IntelliJProjects\\CpuEmulator\\src\\ramStackTest.bin");
     }
 
     public static void runBuildToSchem(String filePath) {
@@ -173,7 +171,7 @@ public class Build {
                 } else if (labels.containsKey(value)) {
                     operationValue |= labels.get(value);
                 } else {
-                    operationValue |= Integer.parseInt(value);
+                    operationValue |= parseInt(value);
                 }
             } else if (opData[0] == 2) {
                 String value = non_imm_execution[0];
@@ -185,7 +183,7 @@ public class Build {
                 }
                 if (imm_a) {
                     try {
-                        operationValue |= Integer.parseInt(value) << shiftAmount;
+                        operationValue |= parseInt(value) << shiftAmount;
                     } catch (NumberFormatException e) {
                         System.err.println("Value '" + value + "' is not a number, expected an immediate value." + "\nLine: " + line);
                         System.exit(-1);
@@ -213,14 +211,14 @@ public class Build {
                 } else if (labels.containsKey(value)) {
                     operationValue |= labels.get(value) << shiftAmount;
                 } else {
-                    operationValue |= Integer.parseInt(value) << shiftAmount;
+                    operationValue |= parseInt(value) << shiftAmount;
                 }
             } else if (opData[0] == 3) {
 
                 String value = non_imm_execution[0];
                 if (imm_a) {
                     try {
-                        operationValue |= Integer.parseInt(value) << 16;
+                        operationValue |= parseInt(value) << 16;
                     } catch (NumberFormatException e) {
                         System.err.println("Value " + value + " is not a number, expected an immediate\nLine: " + line);
                         System.exit(-1);
@@ -237,7 +235,7 @@ public class Build {
                 value = non_imm_execution[1];
                 if (imm_b) {
                     try {
-                        operationValue |= Integer.parseInt(value) << 8;
+                        operationValue |= parseInt(value) << 8;
                     } catch (NumberFormatException e) {
                         System.err.println("Value " + value + " is not a number, expected an immediate\nLine: " + line);
                         System.exit(-1);
@@ -262,13 +260,46 @@ public class Build {
                 } else if (labels.containsKey(value)) {
                     operationValue |= labels.get(value);
                 } else {
-                    operationValue |= Integer.parseInt(value);
+                    operationValue |= parseInt(value);
                 }
             }
 
             instructions.add(operationValue);
         }
         return instructions.toArray(new Integer[0]);
+    }
+
+
+    public static int parseInt(String s) {
+        if (s == null) {
+            throw new IllegalArgumentException("Value cannot be null");
+        }
+        s = s.trim();
+        if (s.isEmpty()) {
+            throw new IllegalArgumentException("Value cannot be empty");
+        }
+
+        int base = 10;
+        if (s.startsWith("0x") || s.startsWith("0X")) {
+            s = s.substring(2);
+            base = 16;
+        } else if (s.startsWith("0b") || s.startsWith("0B")) {
+            s = s.substring(2);
+            base = 2;
+        } else if (s.startsWith("0") && s.length() > 1) {
+            s = s.substring(1);
+            base = 8;
+        }
+
+        try {
+            int value = Integer.parseInt(s, base);
+            if (value > 255) {
+                throw new IllegalArgumentException("Value " + s + " is too large");
+            }
+            return value;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Value " + s + " is not a number");
+        }
     }
 
     /**
@@ -318,8 +349,13 @@ public class Build {
             }
             String[] split = line.split(" ");
 
+            if (Opcodes.getOperation(split[1]) != null) {
+                System.err.println("Constant \"" + split[1] + "\" is a valid opcode, not a constant; Constants cannot be " +
+                        "opcodes" + "\nLine: " + line + " (" + i + ")");
+                System.exit(-1);
+            }
             try {
-                constants.put(split[1], Integer.parseInt(split[2]));
+                constants.put(split[1], parseInt(split[2]));
             } catch (NumberFormatException e) {
                 System.err.println("Value " + split[2] + " is not a number, expected a constant\nLine: " + line +
                         " (" + i + ")");

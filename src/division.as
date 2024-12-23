@@ -7,7 +7,7 @@
 // r4 -> Shift Amount
 
 
-ima cpy 69 r2
+ima cpy 112 r2
 ima cpy 7 r3
 
 cal :divide

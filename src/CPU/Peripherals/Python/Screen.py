@@ -35,7 +35,7 @@ class Screen:
         for y in range(64):
             for x in range(64):
                 # if self.buffer[y * 64 + x]:
-                    # print("Pixel", x, y)
+                # print("Pixel", x, y)
                 self.display.set_pixel((x, y), self.buffer[y * 64 + x])
         pass
 
@@ -109,19 +109,23 @@ def socket_handler():
 def setup_socket():
     global network
     global connection
-    network = socket.socket()  # Create Socket
-    network.bind((host, port))  # Bind Port And Host
-    network.listen(5)  # Socket is Listening
-    print("Socket Is Listening....")
-    connection, address = network.accept()  # Accept the Connection
-    print("Connected To ", address)
-    # time.sleep(3)
-    msgsend = jpysocket.jpyencode("Connection Established")  # Encript The Msg
-    connection.send(msgsend)  # Send Msg
-    msgrecv = connection.recv(1024)  # Recieve msg
-    msgrecv = jpysocket.jpydecode(msgrecv)  # Decript msg
-    print("From Client: ", msgrecv)
-    pass
+
+    network = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Use TCP socket
+    network.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Allow reuse
+    try:
+        network.bind((host, port))  # Bind to host and port
+        network.listen(5)
+        print(f"Socket is listening on {host}:{port}...")
+        connection, address = network.accept()
+        print(f"Connected to {address}")
+        connection.send(jpysocket.jpyencode("Connection Established"))
+    except OSError as e:
+        if e.errno == 10013:
+            print(f"Error: Port {port} is in use or restricted.")
+        else:
+            print(f"Unexpected error: {e}")
+        network.close()
+        raise
 
 
 def main():
@@ -144,8 +148,8 @@ def exit_handler():
 
 atexit.register(exit_handler)
 try:
-    host: str = "localhost"
-    port: int = 50505
+    host: str = "127.0.0.1"  # localhost or 127.0.0.1 -- both are the same
+    port: int = 5005
     network: socket.socket | None = None
     connection: socket.socket | None = None
     waiting = True
