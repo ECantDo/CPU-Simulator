@@ -1,7 +1,7 @@
 package CPU;
 
 import CPU.Peripherals.*;
-import CPU.Peripherals.Screen.Screen;
+import CPU.Peripherals.Screen.JavaScreen;
 
 public class IO {
 
@@ -10,7 +10,7 @@ public class IO {
     public IO() {
         this.IOPorts = new IOInterface[16];
 
-        this.IOPorts[0] = new Screen();
+        this.IOPorts[0] = new JavaScreen(16, 64);
     }
 
     public void ioOutput(int data, int port) {
