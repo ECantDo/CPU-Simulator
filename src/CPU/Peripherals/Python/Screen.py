@@ -40,7 +40,7 @@ class Screen:
         pass
 
 
-def screen_threading(fps: int = 30):
+def screen_threading(fps: int = 60):
     screen = Screen()
     global waiting
     global running
