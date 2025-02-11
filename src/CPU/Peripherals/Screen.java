@@ -5,7 +5,7 @@ import java.net.*;
 import java.lang.*;
 
 
-public class Screen implements IOInterface {
+public class Screen implements ScreenInterface, IOInterface {
 
 	private Process PROCESS;
 	private Socket SOCKET;
