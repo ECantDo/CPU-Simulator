@@ -1,4 +1,4 @@
-package CPU.Peripherals;
+package CPU.Peripherals.Screen;
 
 public class ScreenTesting {
 

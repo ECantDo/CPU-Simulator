@@ -1,4 +1,6 @@
-package CPU.Peripherals;
+package CPU.Peripherals.Screen;
+
+import CPU.Peripherals.IOInterface;
 
 public interface ScreenInterface extends IOInterface {
 	void putPixel(int x, int y, boolean color);

@@ -1,6 +1,6 @@
-package CPU.Peripherals;
+package CPU.Peripherals.Screen;
 
-import CPU.IO;
+import CPU.Peripherals.IOInterface;
 
 public class JavaScreen implements ScreenInterface, IOInterface {
 	@Override

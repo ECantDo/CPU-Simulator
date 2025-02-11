@@ -1,6 +1,7 @@
 package CPU;
 
 import CPU.Peripherals.*;
+import CPU.Peripherals.Screen.Screen;
 
 public class IO {
 
