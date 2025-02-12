@@ -302,7 +302,7 @@ public class Build {
 			if (value > 255) {
 				throw new IllegalArgumentException("Value '" + s + "' is too large");
 			}
-			return value;
+			return value & 0xFF;
 		} catch (NumberFormatException e) {
 			throw new IllegalArgumentException("Value '" + s + "' is not a number");
 		}
