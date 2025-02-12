@@ -23,13 +23,4 @@ public class Registers {
 		}
 		return -1;
 	}
-
-	public static boolean contains(String register) {
-		for (String s : registers) {
-			if (s.equals(register)) {
-				return true;
-			}
-		}
-		return false;
-	}
 }
