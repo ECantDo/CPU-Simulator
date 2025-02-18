@@ -2,62 +2,78 @@ package CPU;
 
 public class ExecutionLoop {
 
-    ProgramCounter programCounter;
-    Registers registers;
-    ALU alu;
-    CLU clu;
-    ProgramMemory programMemory;
-    Stack stack;
-    RAM ram;
-    IO io;
-    int speed;
+	ProgramCounter programCounter;
+	Registers registers;
+	ALU alu;
+	CLU clu;
+	ProgramMemory programMemory;
+	Stack stack;
+	RAM ram;
+	IO io;
+	int speed;
 
-    public ExecutionLoop() {
-        programCounter = new ProgramCounter();
-        registers = new Registers();
-        alu = new ALU();
-        clu = new CLU();
-        programMemory = new ProgramMemory();
-        stack = new Stack();
-        ram = new RAM();
-        io = new IO();
-        speed = 10;
-    }
+	public ExecutionLoop() {
+		programCounter = new ProgramCounter();
+		registers = new Registers();
+		alu = new ALU();
+		clu = new CLU();
+		programMemory = new ProgramMemory();
+		stack = new Stack();
+		ram = new RAM();
+		io = new IO();
+		speed = 10;
+	}
 
-    public ExecutionLoop(int[] program, int speed) {
-        this();
-        programMemory = new ProgramMemory(program);
-        this.speed = speed;
-    }
+	public ExecutionLoop(int[] program, int speed) {
+		this();
+		programMemory = new ProgramMemory(program);
+		this.speed = speed;
+	}
 
-    public void loop() {
+	public void loop() {
+		System.out.println("PROGRAM START\n");
+		long step = 0;
+		long cycleStartTime;
+		boolean cont = true;
+		while (cont) {
+			// Info print
+			System.out.print(programCounter.getProgramCounter() + " : " + registers.toString()
+					+ " : S" + step++ + "\r");
 
-        System.out.println("PROGRAM START\n");
-        long step = 0;
+			// Do a cycle
+			cycleStartTime = System.currentTimeMillis();
+			cont = cycle();
+			int sleepTime = (int) (System.currentTimeMillis() - cycleStartTime);
 
-        do {
-            System.out.print(programCounter.getProgramCounter() + " : " + registers.toString() + " : S" + step++ + "\r");
-            try {
-                Thread.sleep(speed);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        while (cycle());
-        System.out.println();
-        System.out.println("Program finished\n\nREGISTERS:");
-        System.out.println(registers.toString());
+			// Sleep if the cycle time was shorter than the cycle time.
+			if (sleepTime <= 0){
+				continue;
+			}
+			try {
+				Thread.sleep(sleepTime);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
 
-        System.out.println();
-        System.out.println("RAM:");
-        System.out.println(ram.toString());
+		// Output Print
+		System.out.println();
+		System.out.println("Program finished\n\nREGISTERS:");
+		System.out.println(registers.toString());
 
-    }
+		System.out.println();
+		System.out.println("RAM:");
+		System.out.println(ram.toString());
 
-    public boolean cycle() {
-        int instruction = programMemory.getInstruction(programCounter.getProgramCounter());
-        programCounter.increment();
+	}
 
+	public boolean cycle() {
+		int instruction = programMemory.getInstruction(programCounter.getProgramCounter());
+		programCounter.increment();
+
+		throw new UnsupportedOperationException("CPU 'cycle()' needs to be remade");
+
+        /*
         // Extract the opcode, byte01, byte02, and byte03 from the instruction
         byte opcode = (byte) ((instruction & (0xFF00_0000)) >> 24);
         byte byte01 = (byte) ((instruction & (0x00FF_0000)) >> 16);
@@ -106,7 +122,7 @@ public class ExecutionLoop {
 
         // Execute the CPU.ALU and CPU.CLU
         boolean runALU = ALU.getOpcode(opcode) != -1;
-        byte result = alu.run(opcode, valueA, valueB); // Execute the CPU.ALU
+        int result = alu.run(opcode, valueA, valueB); // Execute the CPU.ALU
 
         boolean runCLU = CLU.getOpcode(opcode) != -1;
         boolean setCounter = clu.run(opcode, valueA, valueB); // Execute the CPU.CLU
@@ -127,20 +143,51 @@ public class ExecutionLoop {
 //        registers.set(byte03, result); // Set the value in the register
 
         return true; // Returns true if the loop should continue
-    }
+        */
+	}
 
-    public String printValue(int value) {
-        String binary = Integer.toBinaryString(value);
-        binary = "00000000000000000000000000000000" + binary;
-        binary = binary.substring(binary.length() - 32);
-        return binary;
-    }
+	/**
+	 * Converts a number from an integer to a binary String.
+	 *
+	 * @param value The value to convert.
+	 * @return A String representation of the value, in binary.
+	 */
+	public String getBinaryValue(int value) {
+		StringBuilder output = new StringBuilder(Integer.toBinaryString(value & CPUSpecs.bitMask));
+		while (output.length() != CPUSpecs.bitCount) {
+			output.insert(0, "0");
+		}
+		return output.toString();
+	}
 
-    public String printValue(byte value) {
-        String binary = Integer.toBinaryString(value);
-        binary = "00000000" + binary;
-        binary = binary.substring(binary.length() - 8);
-        return binary;
-    }
+	/**
+	 * Despite the name, it does not in fact print the value, it gets the name as a string.
+	 * See {@link this#getBinaryValue(int)} for the replacement function.
+	 *
+	 * @param value The value to convert to a string.
+	 * @return String representation of the number, in binary.
+	 */
+	@Deprecated
+	public String printValue(int value) {
+		String binary = Integer.toBinaryString(value);
+		binary = "00000000000000000000000000000000" + binary;
+		binary = binary.substring(binary.length() - 32);
+		return binary;
+	}
+
+	/**
+	 * Despite the name, it does not in fact print the value, it gets the name as a string.
+	 * See {@link this#getBinaryValue(int)} for the replacement function.
+	 *
+	 * @param value The value (byte) to convert to a string.
+	 * @return String representation of the number, in binary.
+	 */
+	@Deprecated
+	public String printValue(byte value) {
+		String binary = Integer.toBinaryString(value);
+		binary = "00000000" + binary;
+		binary = binary.substring(binary.length() - 8);
+		return binary;
+	}
 
 }

@@ -5,11 +5,10 @@ import java.util.Arrays;
 public class RAM {
 
 
-    private int[] ram;// = new byte[256];
+    private final int[] ram;// = new byte[256];
 
     public RAM() {
-        int byteCount = 8;
-        ram = new int[(int) Math.pow(2, byteCount)];
+        ram = new int[CPUSpecs.ramAddressSpace];
     }
 
 

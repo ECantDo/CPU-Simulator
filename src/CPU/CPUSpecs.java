@@ -24,9 +24,17 @@ public class CPUSpecs {
 	/**
 	 * Number of addresses in the RAM.
 	 */
-	public static final int ramAddressSpace = 4095;
+	public static final int ramAddressSpace = ramAddressSpaceMask + 1;
 	/**
 	 * Number of addresses in the ROM.
 	 */
-	public static final int romAddressSpace = 4095;
+	public static final int romAddressSpace = romAddressSpaceMask + 1;
+	/**
+	 * The number of registers in the CPU.
+	 */
+	public static final int registerCount = 32;
+	/**
+	 * Mask for addressing registers.
+	 */
+	public static final int registerMask = 0x1F;
 }

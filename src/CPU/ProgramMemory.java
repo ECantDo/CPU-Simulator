@@ -2,7 +2,7 @@ package CPU;
 
 public class ProgramMemory {
 
-    public static int[] programMemory = new int[256];
+    public static int[] programMemory = new int[CPUSpecs.romAddressSpace];
 
     public static int[] program = {
 
@@ -17,7 +17,7 @@ public class ProgramMemory {
     }
 
     public int getInstruction(int address) {
-        address = address & 0xFF;
+        address = address & CPUSpecs.romAddressSpaceMask;
         return programMemory[address];
     }
 }
