@@ -33,7 +33,7 @@ def build_to_schem(file_name: str, instructions: list[int], file_path: str = sav
 
             schem.setBlock((cords[0], y * -2, cords[1]), block)
 
-    schem.save(file_path, file_name, mcschematic.Version.JE_1_20)
+    schem.save(file_path, file_name.split("/")[-1], mcschematic.Version.JE_1_20)
     print(f"Saved to: {save_path}{file_name}")
     pass
 
