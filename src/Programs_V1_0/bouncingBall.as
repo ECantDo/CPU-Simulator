@@ -1,6 +1,6 @@
 // Not much point to make this without peripherals
-
-// reg 0 -> pos x
+cscr
+// reg 0 -> pos xtr 
 // reg 1 -> pos y
 // reg 2 -> x dir | reg 4 -> Def value
 // reg 3 -> y dir | reg 5 -> Def value
