@@ -5,39 +5,51 @@ import java.util.Map;
 
 public class Opcodes {
 
-    public static final Map<String, int[]> immediateMap = new HashMap<>() {{
-        put("ima", new int[]{-1, 128, 24});
-        put("imb", new int[]{-1, 64, 24});
-    }};
-
     public static final Map<String, int[]> opcodeMap = new HashMap<>() {{
-        // "OPERATION", [ARGUMENT COUNT, OP VALUE, SHIFT]
-        put("nop", new int[]{0, 0, 24});
-        put("hlt", new int[]{0, 1, 24});
-        put("add", new int[]{3, 2, 24});
-        put("sub", new int[]{3, 3, 24});
-        put("and", new int[]{3, 4, 24});
-        put("or", new int[]{3, 5, 24});
-        put("xor", new int[]{3, 6, 24});
-        put("nand", new int[]{3, 7, 24});
-        put("nor", new int[]{3, 8, 24});
-        put("xnor", new int[]{3, 9, 24});
-        put("bsh", new int[]{3, 10, 24});
+        // "OPERATION", [ARGUMENT COUNT, OP VALUE]
+        put("hlt",   new int[] {0, 0});
 
-        put("goto", new int[]{1, 16, 24});
-        put("eql", new int[]{3, 17, 24});
-        put("grt", new int[]{3, 18, 24});
-        put("lst", new int[]{3, 19, 24});
-        put("gre", new int[]{3, 20, 24});
-        put("lse", new int[]{3, 21, 24});
-        put("neq", new int[]{3, 22, 24});
+        put("add",   new int[] {3, 1});
+        put("sub",   new int[] {3, 33});
+        put("xor",   new int[] {3, 65});
+        put("or",    new int[] {3, 97});
+        put("and",   new int[] {3, 129});
+        put("xnor",  new int[] {3, 161});
+        put("nor",   new int[] {3, 193});
+        put("nand",  new int[] {3, 225});
+        put("sl",    new int[] {3, 2});
+        put("sra",   new int[] {3, 34});
+        put("sr",    new int[] {3, 66});
 
-        put("str", new int[]{2, 24, 24}); // STORE (ram)
-        put("lod", new int[]{2, 25, 24}); // LOAD (ram)
-        put("cal", new int[]{1, 26, 24}); // CALL (stack)
-        put("ret", new int[]{0, 27, 24}); // RETURN (stack)
-        put("out", new int[]{3, 28, 24}); // IO OUTPUT
-        put("in", new int[]{2, 29 + 128, 24}); // IO INPUT
+        put("addi",  new int[] {3, 17});
+        put("addf",  new int[] {3, 3});
+        put("subi",  new int[] {3, 49});
+        put("li",    new int[] {2, 9});
+        put("xori",  new int[] {3, 81});
+        put("ori",   new int[] {3, 113});
+        put("andi",  new int[] {3, 145});
+        put("xnori", new int[] {3, 177});
+        put("nori",  new int[] {3, 209});
+        put("nandi", new int[] {3, 241});
+        put("sli",   new int[] {3, 18});
+        put("srai",  new int[] {3, 50});
+        put("sri",   new int[] {3, 82});
+
+        put("beq",   new int[] {3, 4});
+        put("bne",   new int[] {3, 36});
+        put("blt",   new int[] {3, 68});
+        put("bge",   new int[] {3, 100});
+        put("bltu",  new int[] {3, 132});
+        put("bgeu",  new int[] {3, 164});
+
+        put("jal",   new int[] {2, 5});
+        put("jalr",  new int[] {3, 6});
+
+        put("lod",   new int[] {3, 7});
+        put("str",   new int[] {3, 39});
+
+        put("in",    new int[] {2, 8});
+        put("out",   new int[] {2, 40});
     }};
 
     //==================================================================================================================
@@ -45,10 +57,11 @@ public class Opcodes {
     //==================================================================================================================
 
     public static int[] getOperation(String operation) {
+        if (operation == null)
+            throw new IllegalArgumentException("Cannot get a null operation");
+
         if (opcodeMap.containsKey(operation)) {
             return opcodeMap.get(operation);
-        } else if (immediateMap.containsKey(operation)) {
-            return immediateMap.get(operation);
         } else if (SudoOpcodes.sudoOpcodes.containsKey(operation)) {
             return SudoOpcodes.buildOperation(operation);
         }
