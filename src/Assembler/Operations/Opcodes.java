@@ -24,7 +24,7 @@ public class Opcodes {
         put("addi",  new int[] {3, 17});
         put("addf",  new int[] {3, 3});
         put("subi",  new int[] {3, 49});
-        put("li",    new int[] {2, 9});
+        put("li",    new int[] {2, 25});
         put("xori",  new int[] {3, 81});
         put("ori",   new int[] {3, 113});
         put("andi",  new int[] {3, 145});
