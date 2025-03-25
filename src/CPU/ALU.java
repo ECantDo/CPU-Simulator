@@ -12,7 +12,7 @@ public class ALU {
 	// Run the CPU.ALU, get the operation and run the proper operation
 	//==================================================================================================================
 
-
+	//TODO; implement flags
 	private int runOperation(int operation, int input_a, int input_b) {
 
 		// The opcode is in the left 4-most bits, if it is 1, 2, or 3, it is an ALU operation.
