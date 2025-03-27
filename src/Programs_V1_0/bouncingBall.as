@@ -12,7 +12,6 @@ ima cpy 1 r5
 cpy r4 r2
 cpy r5 r3
 
-
 ima cpy 33 r10
 ima cpy 0 r11
 
