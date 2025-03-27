@@ -2,7 +2,6 @@ package CPU;
 
 public class ProgramCounter {
 
-    // TODO: Program counter is changing... class needs reworking.
     private int PROGRAM_COUNTER = 0;
 
     public void setProgramCounter(int value){
