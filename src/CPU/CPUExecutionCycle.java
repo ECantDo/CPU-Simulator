@@ -1,6 +1,6 @@
 package CPU;
 
-public class ExecutionLoop {
+public class CPUExecutionCycle {
 
 	ProgramCounter programCounter;
 	Registers registers;
@@ -12,11 +12,10 @@ public class ExecutionLoop {
 	IO io;
 	int speed;
 
-	public ExecutionLoop() {
+	public CPUExecutionCycle() {
 		programCounter = new ProgramCounter();
 		registers = new Registers();
 		alu = new ALU();
-		clu = new CLU();
 		programMemory = new ProgramMemory();
 		stack = new Stack();
 		ram = new RAM();
@@ -24,7 +23,12 @@ public class ExecutionLoop {
 		speed = 10;
 	}
 
-	public ExecutionLoop(int[] program, int speed) {
+	public CPUExecutionCycle(int speed) {
+		this();
+		this.speed = speed;
+	}
+
+	public CPUExecutionCycle(int[] program, int speed) {
 		this();
 		programMemory = new ProgramMemory(program);
 		this.speed = speed;
@@ -46,7 +50,7 @@ public class ExecutionLoop {
 			int sleepTime = (int) (System.currentTimeMillis() - cycleStartTime);
 
 			// Sleep if the cycle time was shorter than the cycle time.
-			if (sleepTime <= 0){
+			if (sleepTime <= 0) {
 				continue;
 			}
 			try {
@@ -69,7 +73,7 @@ public class ExecutionLoop {
 
 	public boolean cycle() {
 		int instruction = programMemory.getInstruction(programCounter.getProgramCounter());
-		programCounter.increment();
+		programCounter.increment(1); // TODO: this is no longer true
 
 		throw new UnsupportedOperationException("CPU 'cycle()' needs to be remade");
 
@@ -171,7 +175,7 @@ public class ExecutionLoop {
 	public String printValue(int value) {
 		String binary = Integer.toBinaryString(value);
 		binary = "00000000000000000000000000000000" + binary;
-		binary = binary.substring(binary.length() - 32);
+		binary = binary.substring(binary.length() - CPUSpecs.bitCount);
 		return binary;
 	}
 
@@ -181,6 +185,7 @@ public class ExecutionLoop {
 	 *
 	 * @param value The value (byte) to convert to a string.
 	 * @return String representation of the number, in binary.
+	 * @deprecated No longer working with an 8-bit CPU...
 	 */
 	@Deprecated
 	public String printValue(byte value) {
