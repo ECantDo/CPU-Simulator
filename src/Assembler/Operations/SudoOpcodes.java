@@ -6,64 +6,25 @@ import java.util.Map;
 
 public class SudoOpcodes {
 
-	private static final Character[] operations = {
-			'|', // or
-			'&', // and
-			'^', // xor
-	};
+	public static final Map<String, String[]> opcodeMap = new HashMap<>() {{
+		put("mv", new String[]{"add", "zero", "rs", "rd"});
+		put("nop", new String[]{"add", "zero", "zero", "zero"});
+		put("neg", new String[]{"sub", "zero", "rs", "rd"});
 
-	public static final Map<String, Object[]> sudoOpcodes = new HashMap<>() {{
-		// "OPERATION", [ARGUMENT COUNT, SUB OPERATIONS...]
-		put("cpy", new Object[]{2, "imb", "or"});
-		put("not", new Object[]{2, "nor"});
+		put("beqz", new String[]{"beq", "rs", "zero", "imm"});
+		put("bnez", new String[]{"bne", "rs", "zero", "imm"});
+		put("blez", new String[]{"bge", "zero", "rs", "offset"});
+		put("bgez", new String[]{"bge", "rs", "zero", "offset"});
+		put("bltz", new String[]{"blt", "rs", "zero", "offset"});
+		put("bgtz", new String[]{"blt", "zero", "rs", "offset"});
 
-		put("lsh", new Object[]{3, "bsh", "imb"});
-		put("rsh", new Object[]{3, "bsh", "imb", "|2048"});
+		put("bgt", new String[]{"blt", "rt", "rs", "offset"});
+		put("ble", new String[]{"bge", "rt", "rs", "offset"});
+		put("bgtu", new String[]{"bltu", "rt", "rs", "offset"});
+		put("bleu", new String[]{"bgeu", "rt", "rs", "offset"});
 
-		put("uscr", new Object[]{0, "ima", "imb", "out", "|49152"});
-		put("cscr", new Object[]{0, "ima", "imb", "out", "|32768"});
+		put("j", new String[]{"jal", "zero", "offset"});
+		put("jal", new String[]{"jal", "ra", "offset"});
+		put("ret", new String[]{"jalr", "zero", "ra", "0"});
 	}};
-
-	/**
-	 * Gets the operation from the sudoOpcodes map
-	 *
-	 * @param opcode The opcode to get
-	 * @return [Argument Count, Operation int value]
-	 */
-	public static int[] buildOperation(String opcode) {
-
-		if (!sudoOpcodes.containsKey(opcode)) {
-			return null;
-		}
-
-		Object[] args = sudoOpcodes.get(opcode);
-		int operationValue = 0;
-
-		for (int i = 1; i < args.length; i++) {
-			if (Arrays.asList(operations).contains(((String) args[i]).charAt(0))) {
-				char operation = ((String) args[i]).charAt(0);
-				int value = Integer.parseInt(((String) args[i]).substring(1));
-				switch (operation) {
-					case '|':
-						operationValue |= value;
-						break;
-					case '&':
-						operationValue &= value;
-						break;
-					case '^':
-						operationValue ^= value;
-						break;
-				}
-				continue;
-			}
-
-			int[] operation = Opcodes.getOperation((String) args[i]);
-			if (operation == null) {
-				return null;
-			}
-			operationValue |= operation[1] << operation[2];
-		}
-
-		return new int[]{(int) args[0], operationValue, 0};
-	}
 }
