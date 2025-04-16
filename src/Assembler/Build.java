@@ -2,10 +2,12 @@ package Assembler;
 
 import Assembler.Exceptions.OpcodeExistsException;
 import Assembler.Operations.Opcodes;
+import CPU.CPUSpecs;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -18,9 +20,10 @@ public class Build {
 	public static int[] build(String programPath) {
 //		TODO:
 //		 Make the stack pointer point to the proper position in the stack
+		System.out.println("Building program: " + programPath);
 		ArrayList<String> programLinesList = new ArrayList<>();
 
-		// Get file contents
+		// Get all file contents including empty lines.
 		Scanner scanner = null;
 		try {
 			scanner = new Scanner(new File(programPath));
@@ -28,11 +31,20 @@ public class Build {
 			throw new RuntimeException(e);
 		}
 		while (scanner.hasNextLine()) {
-			String line = scanner.nextLine().toLowerCase();
+			String line = scanner.nextLine();
 			programLinesList.add(line);
 		}
 
+		Map<String, Integer> constants = filterConstants(programLinesList);
+
+		for (String key : constants.keySet())
+			System.out.println(key + " " + constants.get(key));
+
 		programLinesList = filterProgramComments(programLinesList);
+
+		System.out.println("----");
+		for (String line : programLinesList)
+			System.out.println(line);
 
 		int[] programValues = new int[programLinesList.size()];
 
@@ -65,30 +77,50 @@ public class Build {
 	}
 
 
-	private static Map<String, Integer> filterConstants(ArrayList<String> programLines){
-		for (int i = 0; i < programLines.size(); i++){
+	/**
+	 * Returns a {@link Map<>} of all constants in the program.  Also removes those lines from the list of program
+	 * lines.
+	 * @param programLines All program lines in the file.
+	 * @return Map of a String and Integer.  The string is the constant name, the integer is the value.
+	 */
+	private static Map<String, Integer> filterConstants(ArrayList<String> programLines) {
+		HashMap<String, Integer> constants = new HashMap<>();
+		for (int i = 0; i < programLines.size(); i++) {
 			String line = programLines.get(i);
 			String[] elements = line.split(" ");
 			if (!elements[0].equals("def"))
 				continue;
 
-			if (Opcodes.operationExists(elements[1]))
-				throw new OpcodeExistsException();
+			if (elements.length != 3)
+				throw new RuntimeException("Found a constant value started with 'def' expected 3 values, got " +
+						elements.length + ".\nLine: " + (i + 1) + "\n>>> " + line);
 
+			if (Opcodes.operationExists(elements[1]))
+				throw new OpcodeExistsException("An opcode using that name already exists, use a different name.\n"
+						+ "Line: " + (i + 1) + "\n>>> " + line);
+
+			if (constants.containsKey(elements[1]))
+				throw new IllegalArgumentException("Constant \"" + elements[1] + "\" already exists.\n" +
+						"Line: " + (i + 1) + "\n>>> " + line);
+
+			constants.put(elements[1], parseValue(elements[2]));
+			programLines.remove(line);
 		}
+
+		return constants;
 	}
 
-	private static int parseValue(String value){
+	private static int parseValue(String value) {
 		// Parse char
-		if (value.charAt(0) == '\'' && value.charAt(value.length() - 1) == '\'' ){
-				if (value.length() <= 2 || value.length() > 4)
-					throw new IllegalArgumentException("Character parsing requires characters to be a single " +
-							"character. Either a single letter, or an escape character.");
+		if (value.charAt(0) == '\'' && value.charAt(value.length() - 1) == '\'') {
+			if (value.length() <= 2 || value.length() > 4)
+				throw new IllegalArgumentException("Character parsing requires characters to be a single " +
+						"character. Either a single letter, or an escape character.");
 
 			value = value.substring(1, value.length() - 1);
 
-			if (value.charAt(0) == '\\'){
-				return switch (value.charAt(1)){
+			if (value.charAt(0) == '\\') {
+				return switch (value.charAt(1)) {
 					case 'r' -> '\r';
 					case 'n' -> '\n';
 					default -> throw new IllegalStateException("Unexpected value: " + value.charAt(1));
@@ -98,6 +130,26 @@ public class Build {
 		}
 
 		// todo: parse int, octal, bin, hex
+		int base = 10;
+		if (value.startsWith("0x") || value.startsWith("0X")) {
+			value = value.substring(2);
+			base = 16;
+		} else if (value.startsWith("0b") || value.startsWith("0B")) {
+			value = value.substring(2);
+			base = 2;
+		} else if (value.startsWith("0") && value.length() > 1) {
+			value = value.substring(1);
+			base = 8;
+		}
+
+		try {
+			int result = Integer.parseInt(value, base);
+			if (result > CPUSpecs.bitMask)
+				throw new IllegalArgumentException("Value: \"" + value + "\" is not a legal numerical parsing");
+			return result;
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("Value " + value + " is not a number");
+		}
 	}
 
 }
