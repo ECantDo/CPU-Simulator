@@ -123,9 +123,9 @@ public class Build {
 		return constants;
 	}
 
-	private static Map<String, Integer> filterLabels(ArrayList<String> programLines){
+	private static Map<String, Integer> filterLabels(ArrayList<String> programLines) {
 		HashMap<String, Integer> labels = new HashMap<>();
-		for (int lineIdx = 0; lineIdx < programLines.size(); lineIdx++){
+		for (int lineIdx = 0; lineIdx < programLines.size(); lineIdx++) {
 			String line = programLines.get(lineIdx);
 			if (line.charAt(line.length() - 1) != ':')
 				continue;
@@ -133,7 +133,12 @@ public class Build {
 			if (line.split(" ").length != 1)
 				continue;
 
-			String label = line.substring(0, line.length()-1);
+			String label = line.substring(0, line.length() - 1);
+
+			if (Opcodes.operationExists(label))
+				throw new OpcodeExistsException("Label cannot be an opcode.\n>> " + line + "\n");
+
+
 			labels.put(label, lineIdx--);
 			programLines.remove(line);
 

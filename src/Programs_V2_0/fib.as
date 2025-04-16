@@ -7,7 +7,6 @@ li	1 s0
 li	0 s1
 
 li	1 s2
-
 fib_loop:
 	str	s0 0(s2) // Save value into RAM
 
