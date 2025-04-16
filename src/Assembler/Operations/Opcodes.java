@@ -66,6 +66,7 @@ public class Opcodes {
 	}
 
 	public static boolean operationExists(String operation) {
+		operation = operation.toLowerCase();
 		boolean exists = opcodeMap.get(operation) != null;
 		if (exists)
 			return true;
