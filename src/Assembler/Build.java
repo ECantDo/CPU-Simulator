@@ -125,10 +125,11 @@ public class Build {
 	}
 
 	/**
-	 * Finds all labels in the program
+	 * Finds all labels in the program and makes a map out of them.  Removes the label from the program.
 	 *
-	 * @param programLines
-	 * @return
+	 * @param programLines The program to find the labels in.  Assumes that all other lines have already been removed
+	 *                     and just contains program lines.
+	 * @return Map
 	 */
 	private static Map<String, Integer> filterLabels(ArrayList<String> programLines) {
 		HashMap<String, Integer> labels = new HashMap<>();
