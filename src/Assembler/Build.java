@@ -35,12 +35,22 @@ public class Build {
 			programLinesList.add(line);
 		}
 
+
+		// Get and filter the constants
 		Map<String, Integer> constants = filterConstants(programLinesList);
 
 		for (String key : constants.keySet())
 			System.out.println(key + " " + constants.get(key));
 
+		// Remove comments
 		programLinesList = filterProgramComments(programLinesList);
+
+		// Get the index of labels
+		Map<String, Integer> labelTable = filterLabels(programLinesList);
+
+		System.out.println("----");
+		for (String label : labelTable.keySet())
+			System.out.println(label + " " + labelTable.get(label));
 
 		System.out.println("----");
 		for (String line : programLinesList)
@@ -80,20 +90,23 @@ public class Build {
 	/**
 	 * Returns a {@link Map<>} of all constants in the program.  Also removes those lines from the list of program
 	 * lines.
+	 *
 	 * @param programLines All program lines in the file.
 	 * @return Map of a String and Integer.  The string is the constant name, the integer is the value.
 	 */
 	private static Map<String, Integer> filterConstants(ArrayList<String> programLines) {
 		HashMap<String, Integer> constants = new HashMap<>();
-		for (int i = 0; i < programLines.size(); i++) {
+		for (int i = programLines.size() - 1; i >= 0; i--) {
 			String line = programLines.get(i);
 			String[] elements = line.split(" ");
 			if (!elements[0].equals("def"))
 				continue;
 
+
 			if (elements.length != 3)
 				throw new RuntimeException("Found a constant value started with 'def' expected 3 values, got " +
 						elements.length + ".\nLine: " + (i + 1) + "\n>>> " + line);
+
 
 			if (Opcodes.operationExists(elements[1]))
 				throw new OpcodeExistsException("An opcode using that name already exists, use a different name.\n"
@@ -104,10 +117,28 @@ public class Build {
 						"Line: " + (i + 1) + "\n>>> " + line);
 
 			constants.put(elements[1], parseValue(elements[2]));
-			programLines.remove(line);
+			programLines.remove(i);
 		}
 
 		return constants;
+	}
+
+	private static Map<String, Integer> filterLabels(ArrayList<String> programLines){
+		HashMap<String, Integer> labels = new HashMap<>();
+		for (int lineIdx = 0; lineIdx < programLines.size(); lineIdx++){
+			String line = programLines.get(lineIdx);
+			if (line.charAt(line.length() - 1) != ':')
+				continue;
+
+			if (line.split(" ").length != 1)
+				continue;
+
+			String label = line.substring(0, line.length()-1);
+			labels.put(label, lineIdx--);
+			programLines.remove(line);
+
+		}
+		return labels;
 	}
 
 	private static int parseValue(String value) {
