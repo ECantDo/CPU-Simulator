@@ -39,14 +39,15 @@ public class Build {
 		// Get and filter the constants
 		Map<String, Integer> constants = filterConstants(programLinesList);
 
-		for (String key : constants.keySet())
-			System.out.println(key + " " + constants.get(key));
-
 		// Remove comments
 		programLinesList = filterProgramComments(programLinesList);
 
 		// Get the index of labels
 		Map<String, Integer> labelTable = filterLabels(programLinesList);
+
+		// Print things out for debugging.
+		for (String key : constants.keySet())
+			System.out.println(key + " " + constants.get(key));
 
 		System.out.println("----");
 		for (String label : labelTable.keySet())
@@ -123,6 +124,12 @@ public class Build {
 		return constants;
 	}
 
+	/**
+	 * Finds all labels in the program
+	 *
+	 * @param programLines
+	 * @return
+	 */
 	private static Map<String, Integer> filterLabels(ArrayList<String> programLines) {
 		HashMap<String, Integer> labels = new HashMap<>();
 		for (int lineIdx = 0; lineIdx < programLines.size(); lineIdx++) {
@@ -138,6 +145,8 @@ public class Build {
 			if (Opcodes.operationExists(label))
 				throw new OpcodeExistsException("Label cannot be an opcode.\n>> " + line + "\n");
 
+			if (labels.containsKey(label))
+				throw new RuntimeException("Label \"" + label + "\" already exists.");
 
 			labels.put(label, lineIdx--);
 			programLines.remove(line);
