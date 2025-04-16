@@ -5,6 +5,10 @@ public class OpcodeExistsException extends RuntimeException{
 		super(errorMessage, error);
 	}
 
+	public OpcodeExistsException(String s){
+		super(s);
+	}
+
 	public OpcodeExistsException(){
 		super("An opcode using that name already exists, use a different name.");
 	}
