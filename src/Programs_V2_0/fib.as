@@ -7,6 +7,8 @@ li	second s0
 li	first s1
 
 li	0x1 s2
+li	46368 s3
+
 fib_loop:
 	str	s0 0(s2) // Save value into RAM
 
@@ -16,6 +18,6 @@ fib_loop:
 
 	addi	s2 1 s2
 
-	blt	s0 46368 fib_loop
+	blt	s0 s3 fib_loop
 
 hlt
