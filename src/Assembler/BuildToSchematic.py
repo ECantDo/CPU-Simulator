@@ -9,6 +9,8 @@ if not save_path.endswith("/") and "/" in save_path:
 elif not save_path.endswith("\\") and "\\" in save_path:
     save_path += "\\"
 
+instruction_count = 2 ** 16
+
 
 def main():
     file_name = sys.argv[1]
@@ -19,21 +21,8 @@ def main():
 
 def build_to_schem(file_name: str, instructions: list[int], file_path: str = save_path) -> None:
     schem = mcschematic.MCSchematic()
-
-    for i in range(256):
-        instruction: int = 0
-        if i < len(instructions):
-            instruction: int = instructions[i]
-        cords: tuple[int, int] = get_coordinates(i)
-        for y, bit in enumerate(f"{instruction:32b}"):
-            if bit == "1":
-                block = "redstone_wall_torch[lit=false,facing=east]"
-            else:
-                block = "sea_lantern"
-
-            schem.setBlock((cords[0], y * -2, cords[1]), block)
-
-    schem.save(file_path, file_name.split("/")[-1], mcschematic.Version.JE_1_20)
+    print(len(instructions))
+    # schem.save(file_path, file_name.split("/")[-1], mcschematic.Version.JE_1_20)
     print(f"Saved to: {save_path}{file_name}")
     pass
 
@@ -65,10 +54,16 @@ def get_coordinates(instruction_number: int) -> tuple[int, int]:
 
 
 def get_file_contents(file_path: str) -> list[int]:
+    global instruction_count
     with open(file_path) as f:
         file_contents = f.readlines()
 
     file_contents = [int(line.strip()[2:-1], 2) for line in file_contents]
+
+    while len(file_contents) < instruction_count:
+        file_contents.append(0)
+        continue
+
     return file_contents
 
 
