@@ -45,8 +45,8 @@ public class Opcodes {
 		put("jal", new int[]{2, 5});
 		put("jalr", new int[]{3, 6});
 
-		put("lod", new int[]{3, 7});
-		put("str", new int[]{3, 39});
+		put("lod", new int[]{3, 39});
+		put("str", new int[]{3, 7});
 
 		put("in", new int[]{2, 8});
 		put("out", new int[]{2, 40});

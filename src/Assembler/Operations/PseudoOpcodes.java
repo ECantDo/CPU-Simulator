@@ -26,7 +26,7 @@ public class PseudoOpcodes {
 
 		put("j", new String[]{"jal", "zero", "offset"});
 		put("jal", new String[]{"jal", "ra", "offset"});
-		put("ret", new String[]{"jalr", "zero", "ra", "0"});
+		put("ret", new String[]{"jalr", "zero", "0", "ra"});
 	}};
 
 	private static final Map<String, String[]> convertionMap = new HashMap<>() {{
