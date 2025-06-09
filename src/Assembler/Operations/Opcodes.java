@@ -52,6 +52,53 @@ public class Opcodes {
 		put("out", new int[]{2, 40});
 	}};
 
+	public static final Map<String, Integer> immediateMap = new HashMap<>() {{
+		// "OPERATION", [ARGUMENT COUNT, OP VALUE]
+		put("hlt", 0);
+
+		put("add", 0);
+		put("sub", 0);
+		put("xor", 0);
+		put("or", 0);
+		put("and", 0);
+		put("xnor", 0);
+		put("nor", 0);
+		put("nand", 0);
+		put("sl", 0);
+		put("sra", 0);
+		put("sr", 0);
+
+		put("addi", 0b0100); // addi s0 ____ s2
+		put("addf", 0);
+		put("subi", 0b0010);
+		put("li", 0b010);
+		put("xori", 0b0100);
+		put("ori", 0b0100);
+		put("andi", 0b0100);
+		put("xnori",0b0100);
+		put("nori", 0b0100);
+		put("nandi", 0b0100);
+		put("sli", 0b0100);
+		put("srai", 0b0100);
+		put("sri", 0b0100);
+
+		put("beq", 0b1000);
+		put("bne", 0b1000);
+		put("blt", 0b1000);
+		put("bge", 0b1000);
+		put("bltu", 0b1000);
+		put("bgeu", 0b1000);
+
+		put("jal", 0b100);
+		put("jalr", 0b0100);
+
+		put("lod", 0b0100);
+		put("str", 0b0100);
+
+		put("in", 0b010);
+		put("out", 0b100);
+	}};
+
 	//==================================================================================================================
 	// GET OPERATION
 	//==================================================================================================================

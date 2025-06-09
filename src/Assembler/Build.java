@@ -46,19 +46,19 @@ public class Build {
 		// Get the index of labels
 		Map<String, Integer> labelTable = filterLabels(programLinesList);
 
+		// Todo: Check for duplicates in the label table and constants
+
 		// Print things out for debugging.
 		for (String key : constants.keySet())
 			System.out.println(key + " " + constants.get(key));
 
-		System.out.println("----");
+		System.out.println("----"); // Todo; remove
 		for (String label : labelTable.keySet())
 			System.out.println(label + " " + labelTable.get(label));
 
-		System.out.println("----");
+		System.out.println("----"); // Todo; remove
 		for (String line : programLinesList)
 			System.out.println(line);
-
-		// Replace values in the constants and label table
 
 		// Replace pseudo opcodes with their counterparts
 		String[] programLines = new String[programLinesList.size()];
@@ -70,7 +70,55 @@ public class Build {
 				programLines[i] = line;
 			}
 		}
-		System.out.println("----");
+
+
+		// Replace values in the constants and label table
+		for (int j = 0; j < programLines.length; j++) {
+			String line = programLines[j].trim();
+
+			// Preprocess: Convert 0(s0) → 0 s0
+			line = line.replaceAll("([a-zA-Z0-9_\\-]+)\\((\\w+)\\)", "$1 $2");
+
+			String[] components = line.split("\\s+");
+			if (components.length == 0) continue;
+
+			String opcode = components[0];
+			Integer mask = Opcodes.immediateMap.get(opcode);
+			if (mask == null || mask == 0) {
+				programLines[j] = line; // Just in case we modified it above
+				continue;
+			}
+
+			// Start building updated components
+			String[] updated = new String[components.length];
+			updated[0] = opcode;
+			int maskPosition = 0b10;
+			for (int i = 1; i < components.length; i++) {
+				// Check if this operand position is in the mask
+				if ((mask & maskPosition) != 0) {
+					String operand = components[i];
+
+					Integer v = labelTable.get(operand);
+					if (v == null) v = constants.get(operand);
+
+					// if V is null, assume integer, I will have a later check for it
+					if (v == null) {
+						updated[i] = components[i];
+					} else {
+						updated[i] = v.toString();
+					}
+
+				} else {
+					updated[i] = components[i];
+				}
+				maskPosition = maskPosition << 1;
+			}
+
+			programLines[j] = String.join(" ", updated);
+		}
+
+
+		System.out.println("----"); // Todo; remove
 		for (String line : programLines)
 			System.out.println(line);
 

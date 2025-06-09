@@ -6,7 +6,7 @@ def Igor -12
 li	second s0
 li	first s1
 
-li	1 s2
+li	0x1 s2
 fib_loop:
 	str	s0 0(s2) // Save value into RAM
 
