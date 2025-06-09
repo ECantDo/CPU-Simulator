@@ -213,13 +213,20 @@ public class Build {
 					String operand = components[i];
 
 					Integer v = labelTable.get(operand);
-					if (v == null) v = constants.get(operand);
 
+
+					if (v == null) v = constants.get(operand);
+					else { // V is not null, and has some value, if the opcode is a branch, convert to an offset
+						if (updated[0].charAt(0) == 'b')
+							// V has the destination; offset = destination - current
+							v = v - j;
+
+					}
 					// if V is null, assume integer, I will have a later check for it
 					if (v == null) {
 						updated[i] = components[i];
 					} else {
-						updated[i] = v.toString(); // TODO: Find when it needs to be an offset.
+						updated[i] = v.toString();
 					}
 
 				} else {
