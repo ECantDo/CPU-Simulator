@@ -3,8 +3,8 @@ def second 1
 
 def Igor -12
 
-li	1 s0
-li	0 s1
+li	second s0
+li	first s1
 
 li	1 s2
 fib_loop:
