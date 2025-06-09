@@ -3,6 +3,7 @@ package Assembler;
 import Assembler.Exceptions.OpcodeExistsException;
 import Assembler.Operations.Opcodes;
 import Assembler.Operations.PseudoOpcodes;
+import Assembler.Operations.Registers;
 import CPU.CPUSpecs;
 
 import java.io.File;
@@ -79,12 +80,13 @@ public class Build {
 		for (String line : programLines)
 			System.out.println(line);
 
-		// Convert to machine code
-
-
-		int[] programValues = new int[programLines.length];
-
-		return programValues;
+		// Convert to machine code and return
+		int[] code = convertToMachineCode(programLines);
+		System.out.println("----"); // Todo; remove
+		for (int line : code)
+			System.out.println(String.format("%32s", Integer.toBinaryString(line)).replace(' ', '0') +
+					"\t| " + line);
+		return code;
 	}
 
 	/**
@@ -242,6 +244,106 @@ public class Build {
 		}
 	}
 
+	private static int[] convertToMachineCode(String[] programLines) {
+		int[] output = new int[programLines.length];
+		int i = 0;
+		for (String line : programLines) {
+			String[] arguments = line.split("\\s");
+			int machineCode = Opcodes.opcodeMap.get(arguments[0])[1];
+
+			int opcode = machineCode & 0b11111;
+			int rs1, rs2, rd, imm;
+			switch (opcode) {
+				case 0:
+					// ___ ; op
+					break;
+				case 1:
+				case 2:
+				case 3:
+					// rs2, rs1, rd, upper op, opcode
+					rs1 = Registers.getRegisterValue(arguments[1]);
+					rs2 = Registers.getRegisterValue(arguments[2]);
+					rd = Registers.getRegisterValue(arguments[3]);
+					machineCode |= ((rs2 << 10) | (rs1 << 5) | rd) << 8;
+					break;
+				case 6:
+				case 7:
+				case 17:
+					// imm[13:0], rs1, rd; op, s1, imm, rd
+					rs1 = Registers.getRegisterValue(arguments[1]);
+					imm = parseValue(arguments[2]) & 0x3FFF;
+					rd = Registers.getRegisterValue(arguments[3]);
+					machineCode |= ((imm << 10) | (rs1 << 5) | rd) << 8;
+					break;
+				case 18:
+					// imm[3:0], rs1, rd; op, s1, imm, rd
+					rs1 = Registers.getRegisterValue(arguments[1]);
+					imm = parseValue(arguments[2]);
+					rd = Registers.getRegisterValue(arguments[3]);
+
+					if (imm > 0xF)
+						throw new RuntimeException("Cannot shift by a value greater than 15 -> " + line);
+					if (imm < 0)
+						throw new RuntimeException("Cannot shift by a value less than 0 -> " + line);
+
+					machineCode |= ((imm << 10) | (rs1 << 5) | rd) << 8;
+					break;
+				case 4:
+					// imm[13:5], rs2, rs1, imm[4:0] ; op, rs1, rs2, imm
+					rs1 = Registers.getRegisterValue(arguments[1]);
+					rs2 = Registers.getRegisterValue(arguments[2]);
+					imm = parseValue(arguments[3]);
+					machineCode |= (((imm & 0x3FE0) << 10) | (rs2 << 10) | (rs1 << 5) | (imm & 0x1F)) << 8;
+					break;
+				case 5:
+					// imm[13:0], imm[15:14], [_ _ _], rd ; op rd imm
+					rd = Registers.getRegisterValue(arguments[1]);
+					imm = parseValue(arguments[2]);
+					machineCode |= (((imm & 0x3FFF) << 10) | ((imm & 0xC000) >>> 6) | rd) << 8;
+					break;
+				case 25:
+					// imm[13:0], imm[15:14], [3], rd ; op imm rd
+					imm = parseValue(arguments[1]);
+					rd = Registers.getRegisterValue(arguments[2]);
+					machineCode |= (((imm & 0x3FFF) << 10) | ((imm & 0xC000) >>> 6) | rd) << 8;
+					break;
+				case 8:
+					// needs special casing
+					if (machineCode == 8) {
+						// imm[3:0], [- - - - -], rd ; op, imm, rd
+						imm = parseValue(arguments[1]);
+						rd = Registers.getRegisterValue(arguments[2]);
+
+						if (imm > 0xF)
+							throw new RuntimeException("Cannot find port with value greater than 15 -> " + line);
+						if (imm < 0)
+							throw new RuntimeException("Cannot find port with value less than 0 -> " + line);
+
+						machineCode |= ((imm << 10) | rd) << 8;
+					} else if (machineCode == 40) {
+						// imm[3:0], rs1, [- - - - -] ; op, rs1, imm
+						rs1 = Registers.getRegisterValue(arguments[1]);
+						imm = parseValue(arguments[2]);
+
+						if (imm > 0xF)
+							throw new RuntimeException("Cannot find port with value greater than 15 -> " + line);
+						if (imm < 0)
+							throw new RuntimeException("Cannot find port with value less than 0 -> " + line);
+
+						machineCode |= ((imm << 10) | (rs1 << 5)) << 8;
+					}
+					break;
+				default:
+					/*throw new RuntimeException*/
+					System.err.println("Could not find opcode: " + opcode);
+			}
+
+
+			output[i++] = machineCode;
+		}
+		return output;
+	}
+
 	/**
 	 * Takes in a string value and figures out what the integer value is regardless of the prefix.
 	 * For example, it can parse `0b10` (binary), `0765` (octal), `0xABC` (hexadecimal), or regular integers `1234`.
@@ -292,5 +394,4 @@ public class Build {
 			throw new IllegalArgumentException("Value " + value + " is not a number");
 		}
 	}
-
 }
