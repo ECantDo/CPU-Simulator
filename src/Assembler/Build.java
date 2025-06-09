@@ -15,8 +15,8 @@ import java.util.Scanner;
 public class Build {
 
 	/**
-	 * @param programPath
-	 * @return
+	 * @param programPath Path to the assembly program
+	 * @return Integer array of the converted assembly to machine code
 	 */
 	public static int[] build(String programPath) {
 //		TODO:
@@ -25,7 +25,7 @@ public class Build {
 		ArrayList<String> programLinesList = new ArrayList<>();
 
 		// Get all file contents including empty lines.
-		Scanner scanner = null;
+		Scanner scanner;
 		try {
 			scanner = new Scanner(new File(programPath));
 		} catch (FileNotFoundException e) {
@@ -78,6 +78,9 @@ public class Build {
 		System.out.println("----"); // Todo; remove
 		for (String line : programLines)
 			System.out.println(line);
+
+		// Convert to machine code
+
 
 		int[] programValues = new int[programLines.length];
 
@@ -181,9 +184,9 @@ public class Build {
 	/**
 	 * In-place conversion of labels and constants to their integer values.
 	 *
-	 * @param programLines
-	 * @param constants
-	 * @param labelTable
+	 * @param programLines Array of each line in the program
+	 * @param constants    Map of the name of the constant as the key, with an integer value corresponding to it
+	 * @param labelTable   Map of the name of the label as the key, with the line it corresponds to as the integer value
 	 */
 	private static void convertConstants(String[] programLines, Map<String, Integer> constants,
 	                                     Map<String, Integer> labelTable) {
