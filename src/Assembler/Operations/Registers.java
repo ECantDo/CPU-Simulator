@@ -12,7 +12,7 @@ public class Registers {
 			"a7", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
 	};
 
-	public static int getRegister(String register) {
+	public static int getRegisterValue(String register) {
 		for (int i = 0; i < registers.length; i++) {
 			if (registers[i].equals(register)) {
 				return i;
