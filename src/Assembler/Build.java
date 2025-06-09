@@ -219,7 +219,7 @@ public class Build {
 					if (v == null) {
 						updated[i] = components[i];
 					} else {
-						updated[i] = v.toString();
+						updated[i] = v.toString(); // TODO: Find when it needs to be an offset.
 					}
 
 				} else {
