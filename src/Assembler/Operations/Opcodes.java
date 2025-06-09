@@ -70,6 +70,6 @@ public class Opcodes {
 		boolean exists = opcodeMap.get(operation) != null;
 		if (exists)
 			return true;
-		return SudoOpcodes.opcodeMap.get(operation) != null;
+		return PseudoOpcodes.opcodeMap.get(operation) != null;
 	}
 }
