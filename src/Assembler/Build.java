@@ -21,7 +21,7 @@ public class Build {
 	 */
 	public static int[] build(String programPath) {
 //		TODO:
-//		 Make the stack pointer point to the proper position in the stack
+//		 Make the stack pointer point to the proper position in the stack on program start
 		System.out.println("Building program: " + programPath);
 		ArrayList<String> programLinesList = new ArrayList<>();
 
@@ -47,19 +47,12 @@ public class Build {
 		// Get the index of labels
 		Map<String, Integer> labelTable = filterLabels(programLinesList);
 
-		// Todo: Check for duplicates in the label table and constants
-
-		// Print things out for debugging.
-		for (String key : constants.keySet())
-			System.out.println(key + " " + constants.get(key));
-
-		System.out.println("----"); // Todo; remove
-		for (String label : labelTable.keySet())
-			System.out.println(label + " " + labelTable.get(label));
-
-		System.out.println("----"); // Todo; remove
-		for (String line : programLinesList)
-			System.out.println(line);
+		// Check for duplicates in the label table and constants
+		for (String label : labelTable.keySet()) {
+			if (constants.get(label) != null)
+				throw new RuntimeException("Found a constant that shares a name with a label:\nConstant: " +
+						constants.get(label) + "\tLabel: " + label);
+		}
 
 		// Replace pseudo opcodes with their counterparts
 		String[] programLines = new String[programLinesList.size()];
@@ -76,17 +69,11 @@ public class Build {
 		// Replace values in the constants and label table (in-place)
 		convertConstants(programLines, constants, labelTable);
 
-		System.out.println("----"); // Todo; remove
-		for (String line : programLines)
-			System.out.println(line);
-
 		// Convert to machine code and return
-		int[] code = convertToMachineCode(programLines);
-		System.out.println("----"); // Todo; remove
-		for (int line : code)
-			System.out.println(String.format("%32s", Integer.toBinaryString(line)).replace(' ', '0') +
-					"\t| " + line);
-		return code;
+//		int[] code = convertToMachineCode(programLines);
+
+		return convertToMachineCode(programLines);
+
 	}
 
 	/**
@@ -244,6 +231,12 @@ public class Build {
 		}
 	}
 
+	/**
+	 * Convert a series of instructions into the equivalent machine code.
+	 *
+	 * @param programLines List of instructions to convert.
+	 * @return Integer array of the machine code.
+	 */
 	private static int[] convertToMachineCode(String[] programLines) {
 		int[] output = new int[programLines.length];
 		int i = 0;
@@ -372,7 +365,6 @@ public class Build {
 			return value.charAt(0);
 		}
 
-		// todo: parse int, octal, bin, hex
 		int base = 10;
 		if (value.startsWith("0x") || value.startsWith("0X")) {
 			value = value.substring(2);
