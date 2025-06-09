@@ -2,6 +2,7 @@ package Assembler;
 
 import Assembler.Exceptions.OpcodeExistsException;
 import Assembler.Operations.Opcodes;
+import Assembler.Operations.PseudoOpcodes;
 import CPU.CPUSpecs;
 
 import java.io.File;
@@ -57,7 +58,23 @@ public class Build {
 		for (String line : programLinesList)
 			System.out.println(line);
 
-		int[] programValues = new int[programLinesList.size()];
+		// Replace values in the constants and label table
+
+		// Replace pseudo opcodes with their counterparts
+		String[] programLines = new String[programLinesList.size()];
+		for (int i = 0; i < programLines.length; i++) {
+			String line = programLinesList.get(i);
+			try {
+				programLines[i] = PseudoOpcodes.convert(line);
+			} catch (IllegalArgumentException e) {
+				programLines[i] = line;
+			}
+		}
+		System.out.println("----");
+		for (String line : programLines)
+			System.out.println(line);
+
+		int[] programValues = new int[programLines.length];
 
 		return programValues;
 	}
