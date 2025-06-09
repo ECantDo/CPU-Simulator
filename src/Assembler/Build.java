@@ -221,6 +221,15 @@ public class Build {
 		return labels;
 	}
 
+	/**
+	 * Takes in a string value and figures out what the integer value is regardless of the prefix.
+	 * For example, it can parse `0b10` (binary), `0765` (octal), `0xABC` (hexadecimal), or regular integers `1234`.
+	 * There is also compatibility for converting characters to their respective values, but it needs to be in the
+	 * format of `'c'`.
+	 *
+	 * @param value Some string containing a character string or numerical value.
+	 * @return Integer representation of that value.
+	 */
 	private static int parseValue(String value) {
 		// Parse char
 		if (value.charAt(0) == '\'' && value.charAt(value.length() - 1) == '\'') {
