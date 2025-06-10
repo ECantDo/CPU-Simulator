@@ -1,3 +1,4 @@
+import Assembler.Operations.PseudoOpcodes;
 import CPU.CPUExecutionCycle;
 
 public class Main {
@@ -7,7 +8,8 @@ public class Main {
 
 		// TODO; double check that it works as intended when finished with the build program
 		int speed = 10;
-		int[] program = Assembler.Build.build(programPath);
+//		int[] program = Assembler.Build.build(programPath);
+		System.out.println(PseudoOpcodes.convert("mv s0 s1"));
 //		CPUExecutionCycle cpuExecutionCycle = new CPUExecutionCycle(program, speed);
 //		CPUExecutionCycle.loop();
 	}

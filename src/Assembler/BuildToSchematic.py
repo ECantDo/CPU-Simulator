@@ -11,6 +11,8 @@ elif not save_path.endswith("\\") and "\\" in save_path:
 
 instruction_count = 2 ** 16
 
+barrels = []
+
 
 def main():
     file_name = sys.argv[1]
@@ -22,12 +24,13 @@ def main():
 def build_to_schem(file_name: str, instructions: list[int], file_path: str = save_path) -> None:
     schem = mcschematic.MCSchematic()
     print(len(instructions))
-    # schem.save(file_path, file_name.split("/")[-1], mcschematic.Version.JE_1_20)
+    # schem.save(file_path, file_name.split("/")[-1], mcschematic.Version.JE_1_21)
     print(f"Saved to: {save_path}{file_name}")
     pass
 
 
 def get_cell_location(instruction_number: int) -> tuple[int, int]:
+    instruction_number //= 4
     row = instruction_number % 8
     depth = instruction_number // 8
     # print(f"{row = }\t{depth = }")
