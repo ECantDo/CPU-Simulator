@@ -1,16 +1,14 @@
-import Assembler.Operations.PseudoOpcodes;
-import CPU.CPUExecutionCycle;
+import CPU.ExecutionLoop;
 
 public class Main {
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 
-		String programPath = "src\\Programs_V2_0\\fib.as";
+        String programPath = "src\\Programs_V1_0\\bouncingBall.as";
 
-		// TODO; double check that it works as intended when finished with the build program
-		int speed = 10;
-//		int[] program = Assembler.Build.build(programPath);
-		System.out.println(PseudoOpcodes.convert("mv s0 s1"));
-//		CPUExecutionCycle cpuExecutionCycle = new CPUExecutionCycle(program, speed);
-//		CPUExecutionCycle.loop();
-	}
+        int speed = 10;
+        int[] program = Assembler.Build.build(programPath);
+
+        ExecutionLoop executionLoop = new ExecutionLoop(program, speed);
+        executionLoop.loop();
+    }
 }
