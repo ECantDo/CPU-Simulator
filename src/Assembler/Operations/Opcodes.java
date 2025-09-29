@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class Opcodes {
 
-	private static final Map<String, int[]> opcodeMap = new HashMap<>() {{
+	public static final Map<String, int[]> opcodeMap = new HashMap<>() {{
 		// "OPERATION", [ARGUMENT COUNT, OP VALUE]
 		put("hlt", new int[]{0, 0});
 

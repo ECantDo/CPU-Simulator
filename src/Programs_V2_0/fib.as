@@ -18,6 +18,6 @@ fib_loop: // This is an annoying comment (maybe)
 
 	addi	s2 1 s2
 
-	blt	s0 s3 fib_loop
+	bltu	s0 s3 fib_loop
 
 hlt

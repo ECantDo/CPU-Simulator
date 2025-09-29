@@ -135,7 +135,7 @@ public class Build {
 					int labelLineNumber = labels.getOrDefault(part, -1);
 					if (labelLineNumber >= 0) {
 						immediateValue = labelLineNumber - lineNumber;
-						System.err.println("Imm is label -> " + labelLineNumber + " - " + lineNumber + " = " + immediateValue);
+//						System.err.println("Imm is label -> " + labelLineNumber + " - " + lineNumber + " = " + immediateValue);
 					} else {
 						immediateValue = parseInt(part);
 					}
@@ -177,7 +177,7 @@ public class Build {
 					operationValue |= (instructionValues[2] & 0b11111) << 8;
 
 					// bit 14 & 15 -> first 2 bits of byte 3
-					operationValue |= ((immediateValue >> 13) & 0b11) << 16;
+					operationValue |= ((immediateValue >> 14) & 0b11) << 16;
 
 					// Remaining imm bits starts 3rd bit into byte 3
 					operationValue |= (immediateValue & 0x3FFF) << 18;
@@ -199,7 +199,7 @@ public class Build {
 					operationValue |= (immediateValue & 0x3FFF) << 18;
 					break;
 				case 4: // Branching
-					System.out.println("Imm: " + immediateValue);
+//					System.out.println("Imm: " + immediateValue);
 					// RS1, last 3 bits of byte 2, first 2 bits of byte 3
 					operationValue |= (instructionValues[1] & 0b11111) << 13;
 
@@ -271,11 +271,11 @@ public class Build {
 				continue;
 			}
 			if (line.contains(":")) {
-				System.out.println("'" + line + "'");
+//				System.out.println("'" + line + "'");
 				labels.put(line.substring(0, line.indexOf(':')), address);
 				continue;
 			}
-			System.out.println(line);
+//			System.out.println(line);
 			address++;
 		}
 		return labels;

@@ -1,5 +1,8 @@
 package CPU;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class CPUExecutionCycle {
 
 	ProgramCounter programCounter;
@@ -64,9 +67,9 @@ public class CPUExecutionCycle {
 		System.out.println("Program finished\n\nREGISTERS:");
 		System.out.println(registers.toString());
 
-		System.out.println();
-		System.out.println("RAM:");
-		System.out.println(ram.toString());
+//		System.out.println();
+//		System.out.println("RAM:");
+//		System.out.println(ram.toString());
 
 	}
 
@@ -74,7 +77,14 @@ public class CPUExecutionCycle {
 		int instruction = programMemory.getInstruction(programCounter.getProgramCounter());
 		programCounter.increment(1); // TODO: this is no longer true
 
-		throw new UnsupportedOperationException("CPU 'cycle()' needs to be remade");
+//		throw new UnsupportedOperationException("CPU 'cycle()' needs to be remade");
+
+		// Extract values
+		Map<String, Integer> parts = decodeInstruction(instruction);
+		System.out.println(parts);
+
+		return parts.get("opcode") != 0; // if == 0; stop looping; return false
+
 
         /*
         // Extract the opcode, byte01, byte02, and byte03 from the instruction
@@ -161,6 +171,85 @@ public class CPUExecutionCycle {
 			output.insert(0, "0");
 		}
 		return output.toString();
+	}
+
+	public static Map<String, Integer> decodeInstruction(int operationValue) {
+		Map<String, Integer> result = new LinkedHashMap<>();
+
+		// Base fields
+		int opcode = operationValue & 0xFF;              // bits 0..7
+		int func = operationValue & 0b11111;           // low 5 bits (function selector)
+		result.put("opcode", opcode);
+		result.put("function", func);
+
+		switch (func) {
+			// Without immediate...
+			case 0: // Halt
+				result.put("rd", 0);
+				result.put("rs1", 0);
+				result.put("rs2", 0);
+				result.put("imm", 0);
+				break;
+			case 1: // ALU
+			case 2: // Barrel Shifter
+			case 3: // Add with flags
+				result.put("rd", (operationValue >> 8) & 0b11111);
+				result.put("rs1", (operationValue >> 13) & 0b11111);
+				result.put("rs2", (operationValue >> 18) & 0b11111);
+				break;
+
+			case 5: // Jump and link
+			case 25: // Load Immediate
+				result.put("rd", (operationValue >> 8) & 0b11111);
+
+				// imm split: 2 bits at 16..17, 14 bits at 18..
+				int immHi = (operationValue >> 16) & 0b11;
+				int immLo = (operationValue >> 18) & 0x3FFF;
+				int imm = (immHi << 14) | immLo;
+
+//				System.err.println("--->" + imm);
+
+				// sign-extend if you need signed immediates
+				imm = signExtend(imm, 16);
+				result.put("imm", imm);
+				break;
+
+			case 18: // Shifter (imm 4 bits)
+			case 17: // ALU with imm
+			case 6:  // Jump and Link Register
+			case 7:  // Store/load
+				result.put("rd", (operationValue >> 8) & 0b11111);
+				result.put("rs1", (operationValue >> 13) & 0b11111);
+
+				int imm14 = (operationValue >> 18) & 0x3FFF;
+				imm14 = signExtend(imm14, 14);
+				result.put("imm", imm14);
+				break;
+
+			case 4: // Branching
+				result.put("rs1", (operationValue >> 13) & 0b11111);
+				result.put("rs2", (operationValue >> 18) & 0b11111);
+
+				// low 5 bits from [8..12], upper 9 from [23..31]
+				int low5 = (operationValue >> 8) & 0x1F;
+				int high9 = (operationValue >> 23) & 0x1FF;
+				int branchImm = (high9 << 5) | low5;
+				branchImm = signExtend(branchImm, 14);
+				result.put("imm", branchImm);
+				break;
+
+			default:
+				throw new UnsupportedOperationException(
+						"Unimplemented decode for function " + func
+				);
+		}
+
+		return result;
+	}
+
+	private static int signExtend(int value, int bits) {
+		int shift = 32 - bits;
+		return (value << shift) >> shift;
 	}
 
 	/**
