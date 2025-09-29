@@ -5,7 +5,6 @@ public class CPUExecutionCycle {
 	ProgramCounter programCounter;
 	Registers registers;
 	ALU alu;
-	CLU clu;
 	ProgramMemory programMemory;
 	Stack stack;
 	RAM ram;

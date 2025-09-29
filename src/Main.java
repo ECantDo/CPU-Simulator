@@ -1,14 +1,20 @@
-import CPU.ExecutionLoop;
+//import CPU.ExecutionLoop;
+
+import Assembler.Build;
+import Assembler.Operations.PseudoOpcodes;
 
 public class Main {
-    public static void main(String[] args) {
+	public static void main(String[] args) {
 
-        String programPath = "src\\Programs_V1_0\\bouncingBall.as";
+		System.out.println(Build.build("src\\Programs_V2_0\\fib.as"));
 
-        int speed = 10;
-        int[] program = Assembler.Build.build(programPath);
 
-        ExecutionLoop executionLoop = new ExecutionLoop(program, speed);
-        executionLoop.loop();
-    }
+//        String programPath = "src\\smile.as";
+
+//        int speed = 10;
+//        int[] program = Assembler.Build.build(programPath);
+
+//        ExecutionLoop executionLoop = new ExecutionLoop(program, speed);
+//        executionLoop.loop();
+	}
 }

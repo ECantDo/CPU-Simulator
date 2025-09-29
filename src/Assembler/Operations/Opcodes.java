@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class Opcodes {
 
-	public static final Map<String, int[]> opcodeMap = new HashMap<>() {{
+	private static final Map<String, int[]> opcodeMap = new HashMap<>() {{
 		// "OPERATION", [ARGUMENT COUNT, OP VALUE]
 		put("hlt", new int[]{0, 0});
 
@@ -52,8 +52,9 @@ public class Opcodes {
 		put("out", new int[]{2, 40});
 	}};
 
-	public static final Map<String, Integer> immediateMap = new HashMap<>() {{
-		// "OPERATION", [ARGUMENT COUNT, OP VALUE]
+	private static final Map<String, Integer> immediateMap = new HashMap<>() {{
+		// TODO; figure out what the heck I was thinking here
+		// "OPERATION",
 		put("hlt", 0);
 
 		put("add", 0);
@@ -75,7 +76,7 @@ public class Opcodes {
 		put("xori", 0b0100);
 		put("ori", 0b0100);
 		put("andi", 0b0100);
-		put("xnori",0b0100);
+		put("xnori", 0b0100);
 		put("nori", 0b0100);
 		put("nandi", 0b0100);
 		put("sli", 0b0100);
@@ -106,10 +107,8 @@ public class Opcodes {
 	public static int[] generateOperation(String operation) {
 		if (operation == null)
 			throw new IllegalArgumentException("Cannot get a null operation");
-
-		int[] operationOutput;
-		operationOutput = opcodeMap.get(operation);
-		return operationOutput;
+		operation = operation.toLowerCase();
+		return opcodeMap.get(operation);
 	}
 
 	public static boolean operationExists(String operation) {
@@ -118,5 +117,10 @@ public class Opcodes {
 		if (exists)
 			return true;
 		return PseudoOpcodes.opcodeMap.get(operation) != null;
+	}
+
+	public static int getImmediateMap(String operation) {
+		operation = operation.toLowerCase();
+		return immediateMap.get(operation);
 	}
 }

@@ -1,389 +1,400 @@
 package Assembler;
 
-import Assembler.Exceptions.OpcodeExistsException;
-import Assembler.Operations.Opcodes;
-import Assembler.Operations.PseudoOpcodes;
-import Assembler.Operations.Registers;
-import CPU.CPUSpecs;
-
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.io.IOException;
+import java.util.*;
+
+import Assembler.Exceptions.OpcodeExistsException;
+import Assembler.Operations.*;
+import CPU.CPUSpecs;
 
 public class Build {
 
-	/**
-	 * @param programPath Path to the assembly program
-	 * @return Integer array of the converted assembly to machine code
-	 */
-	public static int[] build(String programPath) {
-//		TODO:
-//		 Make the stack pointer point to the proper position in the stack on program start
-		System.out.println("Building program: " + programPath);
-		ArrayList<String> programLinesList = new ArrayList<>();
+	public static void runBuildToSchem(String filePath) {
+		String directory = System.getProperty("user.dir");
+//        System.out.println(directory);
+		directory += "\\src\\Assembler\\runBuildToSchem.bat";
+		String command = "cmd /c start ";
 
-		// Get all file contents including empty lines.
-		Scanner scanner;
 		try {
-			scanner = new Scanner(new File(programPath));
-		} catch (FileNotFoundException e) {
-			throw new RuntimeException(e);
+			ProcessBuilder pb = new ProcessBuilder("cmd", "/c", "start", directory, filePath);
+//            pb.directory(new File(directory));
+			Process p = pb.start();
+		} catch (IOException e) {
+			System.err.println("Failed to run .bat\n" + e.getMessage());
 		}
-		while (scanner.hasNextLine()) {
-			String line = scanner.nextLine();
-			programLinesList.add(line);
-		}
+	}
 
-
-		// Get and filter the constants
-		Map<String, Integer> constants = filterConstants(programLinesList);
-
-		// Remove comments
-		programLinesList = filterProgramComments(programLinesList);
-
-		// Get the index of labels
-		Map<String, Integer> labelTable = filterLabels(programLinesList);
-
-		// Check for duplicates in the label table and constants
-		for (String label : labelTable.keySet()) {
-			if (constants.get(label) != null)
-				throw new RuntimeException("Found a constant that shares a name with a label:\nConstant: " +
-						constants.get(label) + "\tLabel: " + label);
+	/**
+	 * Logic that sequences the build cycle
+	 *
+	 * @param filePath The file path that contains the source code (custom .as file)
+	 * @return An array of integers of the assembled program - custom machine code
+	 */
+	public static int[] build(String filePath) {
+		if (filePath == null) {
+			throw new IllegalArgumentException("File path cannot be null");
 		}
 
-		// Replace pseudo opcodes with their counterparts
-		String[] programLines = new String[programLinesList.size()];
-		for (int i = 0; i < programLines.length; i++) {
-			String line = programLinesList.get(i);
-			try {
-				programLines[i] = PseudoOpcodes.convert(line);
-			} catch (IllegalArgumentException e) {
-				programLines[i] = line;
+
+		String[] fileContents = formatFile(readFile(filePath));
+		Map<String, Integer> labels = getLabels(fileContents);
+		Map<String, Integer> constants = getConstants(fileContents);
+
+		replaceConstants(fileContents, constants);
+		System.out.println("Replaced Constants:");
+		for (String line : fileContents) {
+			System.out.println(line);
+		}
+
+		Integer[] instructions = assemble(fileContents, labels);
+		try {
+			File outputFile = new File(filePath.substring(0, filePath.lastIndexOf('.')) + ".bin");
+			if (outputFile.createNewFile()) {
+				System.out.println("Created new file");
 			}
+
+			FileWriter writer = new FileWriter(outputFile);
+			for (Integer instruction : instructions) {
+				writer.write("0b" + String.format("%32s", Integer.toBinaryString(instruction)).replace(' ', '0') + ",\n");
+			}
+			writer.close();
+			System.out.println("Wrote to output file: " + outputFile.getPath());
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-
-
-		// Replace values in the constants and label table (in-place)
-		convertConstants(programLines, constants, labelTable);
-
-		// Convert to machine code and return
-//		int[] code = convertToMachineCode(programLines);
-
-		return convertToMachineCode(programLines);
-
+		return Arrays.stream(instructions).mapToInt(i -> i).toArray();
 	}
 
 	/**
-	 * Remove all comments and blanklines from a given program.
+	 * Main assembler logic.  Converts the file into an array of integers
 	 *
-	 * @param programLines {@link ArrayList} of lines in the program.
-	 * @return Returns a new ArrayList with the new program.
+	 * @param fileContents The contents of the file as a String array
+	 * @param labels       The labels in the file
+	 * @return An array of integers of the assembled program
 	 */
-	private static ArrayList<String> filterProgramComments(ArrayList<String> programLines) {
-		if (programLines == null)
-			throw new IllegalArgumentException("programLines cannot be null");
-
-		ArrayList<String> outputLines = new ArrayList<>(programLines.size());
-
-		for (String line : programLines) {
-			int stripIdx = line.indexOf("//") - 1;
-			if (stripIdx >= 0)
-				line = line.substring(0, stripIdx);
-
-			line = line.strip().replaceAll("\t", " ");
-
-			if (!line.isEmpty())
-				outputLines.add(line);
+	private static Integer[] assemble(String[] fileContents, Map<String, Integer> labels) {
+		if (fileContents == null) {
+			throw new IllegalArgumentException("File Contents Array cannot be null");
 		}
-		return outputLines;
+		if (labels == null) {
+			throw new IllegalArgumentException("Labels Map cannot be null");
+		}
+
+		System.out.println(labels);
+
+		ArrayList<Integer> instructions = new ArrayList<>();
+
+		int lineNumber = 0;
+
+		for (String line : fileContents) {
+			// Contents already formatted.
+//			String line = fileContents[lineNumber];
+
+			if (line.isBlank()) {
+				continue;
+			}
+
+			if (line.startsWith("def ")) {
+				continue;
+			}
+
+			String[] parts = line.split(" ");
+//            System.out.println("Parts: " + Arrays.toString(parts));
+
+			if (PseudoOpcodes.operationExists(parts[0])) {
+				parts = PseudoOpcodes.convert(line).split(" ");
+			}
+
+			String mnemonic = parts[0];
+
+			if (mnemonic.charAt(mnemonic.length() - 1) == ':') { // Skip labels
+				continue;
+			}
+
+			// [arg count, opcode value]
+			int[] args = Opcodes.generateOperation(mnemonic);
+			if (args == null) throw new OpcodeExistsException("Opcode \"" + mnemonic + "\" does not exist");
+
+			if (parts.length - 1 != args[0]) {
+				throw new IllegalArgumentException("Expected argument count does not match received count\n-> " + line);
+			}
+
+			int immediatePosition = Opcodes.getImmediateMap(mnemonic);
+
+			int[] instructionValues = new int[parts.length];
+			int currentPosition = 1;
+			int immediateValue = 0;
+
+			// Convert the words into number :3
+			for (int i = 0; i < instructionValues.length; i++) {
+				String part = parts[i];
+				if ((currentPosition & immediatePosition) != 0) {
+					int labelLineNumber = labels.getOrDefault(part, -1);
+					if (labelLineNumber >= 0) {
+						immediateValue = labelLineNumber - lineNumber;
+						System.err.println("Imm is label -> " + labelLineNumber + " - " + lineNumber + " = " + immediateValue);
+					} else {
+						immediateValue = parseInt(part);
+					}
+				} else if (i == 0) { // If is the opcode position, use the value already gotten for it
+					instructionValues[i] = args[1];
+				} else { // Should otherwise be a register
+					instructionValues[i] = Registers.getRegisterValue(part);
+				}
+
+				currentPosition <<= 1;
+			}
+
+			// Put all the bytes into the correct location(s)
+
+			int operationValue = 0;
+
+			operationValue |= instructionValues[0]; // Opcode always takes the first 8 bits
+
+			switch (operationValue & 0b11111) {
+				case 0: // Halt
+					// Nothing needs to happen here, operationValue = 0 for halt
+					break;
+				// Without immediate...
+				case 1: // ALU (add, sub, xor, and, or, ...)
+				case 2: // Barrel Shifter
+				case 3: // Add with flags
+					// RD, first 5 bits of byte 2
+					operationValue |= (instructionValues[3] & 0b11111) << 8;
+
+					// RS1, last 3 bits of byte 2, first 2 bits of byte 3
+					operationValue |= (instructionValues[1] & 0b11111) << 13;
+
+					// RS2, 5 bits of byte 3, starting 3 bits in
+					operationValue |= (instructionValues[2] & 0b11111) << 18;
+					break;
+				case 5: //  Jump and link
+				case 25: // Load Immediate
+					// RD, first 5 bits of byte 2
+					operationValue |= (instructionValues[2] & 0b11111) << 8;
+
+					// bit 14 & 15 -> first 2 bits of byte 3
+					operationValue |= ((immediateValue >> 13) & 0b11) << 16;
+
+					// Remaining imm bits starts 3rd bit into byte 3
+					operationValue |= (immediateValue & 0x3FFF) << 18;
+					break;
+				case 18: // Shifter
+					// shifting needs the immediateValue to only be 4 bits long
+					immediateValue &= 0xF;
+					// then the rest of the logic is the same as case 17
+				case 17: // ALU with imm
+				case 6: // Jump and Link Register
+				case 7: // Store/load
+					// RD, first 5 bits of byte 2
+					operationValue |= (instructionValues[3] & 0b11111) << 8;
+
+					// RS1, last 3 bits of byte 2, first 2 bits of byte 3
+					operationValue |= (instructionValues[1] & 0b11111) << 13;
+
+					// Imm bits starts 3rd bit into byte 3
+					operationValue |= (immediateValue & 0x3FFF) << 18;
+					break;
+				case 4: // Branching
+					System.out.println("Imm: " + immediateValue);
+					// RS1, last 3 bits of byte 2, first 2 bits of byte 3
+					operationValue |= (instructionValues[1] & 0b11111) << 13;
+
+					// RS2, 5 bits of byte 3, starting 3 bits in
+					operationValue |= (instructionValues[2] & 0b11111) << 18;
+
+					// Bits [0 : 4] take the place of RD
+					operationValue |= (immediateValue & 0x1F) << 8;
+
+					// Bits [5 : 13] take the rest of the instruction
+					operationValue |= (immediateValue >> 5) << 23;
+					break;
+				default:
+					throw new UnsupportedOperationException("Unimplemented encoding for function " +
+							(operationValue & 0b11111));
+			}
+			instructions.add(operationValue);
+			lineNumber++;
+		}
+		return instructions.toArray(new Integer[0]);
 	}
 
 
-	/**
-	 * Returns a {@link Map<>} of all constants in the program.  Also removes those lines from the list of program
-	 * lines.
-	 *
-	 * @param programLines All program lines in the file.
-	 * @return Map of a String and Integer.  The string is the constant name, the integer is the value.
-	 */
-	private static Map<String, Integer> filterConstants(ArrayList<String> programLines) {
-		HashMap<String, Integer> constants = new HashMap<>();
-		for (int i = programLines.size() - 1; i >= 0; i--) {
-			String line = programLines.get(i);
-			String[] elements = line.split(" ");
-			if (!elements[0].equals("def"))
-				continue;
-
-
-			if (elements.length != 3)
-				throw new RuntimeException("Found a constant value started with 'def' expected 3 values, got " +
-						elements.length + ".\nLine: " + (i + 1) + "\n>>> " + line);
-
-
-			if (Opcodes.operationExists(elements[1]))
-				throw new OpcodeExistsException("An opcode using that name already exists, use a different name.\n"
-						+ "Line: " + (i + 1) + "\n>>> " + line);
-
-			if (constants.containsKey(elements[1]))
-				throw new IllegalArgumentException("Constant \"" + elements[1] + "\" already exists.\n" +
-						"Line: " + (i + 1) + "\n>>> " + line);
-
-			constants.put(elements[1], parseValue(elements[2]));
-			programLines.remove(i);
+	public static int parseInt(String s) {
+		if (s == null) {
+			throw new IllegalArgumentException("Value cannot be null");
+		}
+		s = s.trim();
+		if (s.isEmpty()) {
+			throw new IllegalArgumentException("Value cannot be empty");
 		}
 
-		return constants;
+		int base = 10;
+		if (s.startsWith("0x") || s.startsWith("0X")) {
+			s = s.substring(2);
+			base = 16;
+		} else if (s.startsWith("0b") || s.startsWith("0B")) {
+			s = s.substring(2);
+			base = 2;
+		} else if (s.startsWith("0") && s.length() > 1) {
+			s = s.substring(1);
+			base = 8;
+		}
+
+		try {
+			return Integer.parseInt(s, base);
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("Value '" + s + "' is not a number");
+		}
 	}
 
 	/**
-	 * Finds all labels in the program and makes a map out of them.  Removes the label from the program.
+	 * Returns a map of labels and their addresses
 	 *
-	 * @param programLines The program to find the labels in.  Assumes that all other lines have already been removed
-	 *                     and just contains program lines.
-	 * @return Map
+	 * @param fileContents the contents of the file, formatted
 	 */
-	private static Map<String, Integer> filterLabels(ArrayList<String> programLines) {
-		HashMap<String, Integer> labels = new HashMap<>();
-		for (int lineIdx = 0; lineIdx < programLines.size(); lineIdx++) {
-			String line = programLines.get(lineIdx);
-			if (line.charAt(line.length() - 1) != ':')
+	private static Map<String, Integer> getLabels(String[] fileContents) {
+		if (fileContents == null) {
+			throw new IllegalArgumentException("File Contents Array cannot be null");
+		}
+
+		Map<String, Integer> labels = new HashMap<>();
+		int address = 0;
+		for (String line : fileContents) {
+			if (line.isBlank()) {
 				continue;
-
-			if (line.split(" ").length != 1)
+			}
+			if (line.startsWith("def ")){
 				continue;
-
-			String label = line.substring(0, line.length() - 1);
-
-			if (Opcodes.operationExists(label))
-				throw new OpcodeExistsException("Label cannot be an opcode.\n>> " + line + "\n");
-
-			if (labels.containsKey(label))
-				throw new RuntimeException("Label \"" + label + "\" already exists.");
-
-			labels.put(label, lineIdx--);
-			programLines.remove(line);
-
+			}
+			if (line.contains(":")) {
+				System.out.println("'" + line + "'");
+				labels.put(line.substring(0, line.indexOf(':')), address);
+				continue;
+			}
+			System.out.println(line);
+			address++;
 		}
 		return labels;
 	}
 
 	/**
-	 * In-place conversion of labels and constants to their integer values.
+	 * Gets the constant values from the file, and returns them in a map
 	 *
-	 * @param programLines Array of each line in the program
-	 * @param constants    Map of the name of the constant as the key, with an integer value corresponding to it
-	 * @param labelTable   Map of the name of the label as the key, with the line it corresponds to as the integer value
+	 * @param fileContents The .as file contents
+	 * @return The map of constants <String Value, Integer Value>
 	 */
-	private static void convertConstants(String[] programLines, Map<String, Integer> constants,
-	                                     Map<String, Integer> labelTable) {
-		for (int j = 0; j < programLines.length; j++) {
-			String line = programLines[j].trim();
+	private static Map<String, Integer> getConstants(String[] fileContents) {
+		if (fileContents == null) {
+			throw new IllegalArgumentException("File Contents Array cannot be null");
+		}
 
-			// Preprocess: Convert 0(s0) → 0 s0
-			line = line.replaceAll("([a-zA-Z0-9_\\-]+)\\((\\w+)\\)", "$1 $2");
-
-			String[] components = line.split("\\s+");
-			if (components.length == 0) continue;
-
-			String opcode = components[0];
-			Integer mask = Opcodes.immediateMap.get(opcode);
-			if (mask == null || mask == 0) {
-				programLines[j] = line; // Just in case we modified it above
+		Map<String, Integer> constants = new HashMap<>();
+		for (int i = 0; i < fileContents.length; i++) {
+			String line = fileContents[i].trim();
+			if (line.isEmpty()) {
 				continue;
 			}
+			if (!line.startsWith("def ")) {
+				continue;
+			}
+			String[] split = line.split(" ");
 
-			// Start building updated components
-			String[] updated = new String[components.length];
-			updated[0] = opcode;
-			int maskPosition = 0b10;
-			for (int i = 1; i < components.length; i++) {
-				// Check if this operand position is in the mask
-				if ((mask & maskPosition) != 0) {
-					String operand = components[i];
+			if (Opcodes.operationExists(split[1])) {
+				System.err.println("Constant \"" + split[1] + "\" is a valid opcode, not a constant; Constants " +
+						"cannot be opcodes\nLine: " + line + " (" + i + ")");
+				System.exit(-1);
+			}
+			try {
+				constants.put(split[1], parseInt(split[2]));
+			} catch (NumberFormatException e) {
+				System.err.println("Value " + split[2] + " is not a number, expected a constant\nLine: " + line +
+						" (" + i + ")");
+				System.exit(-1);
+			}
+		}
+		return constants;
+	}
 
-					Integer v = labelTable.get(operand);
+	public static void replaceConstants(String[] fileContents, Map<String, Integer> constants) {
+		if (fileContents == null) {
+			throw new IllegalArgumentException("File Contents Array cannot be null");
+		}
 
-
-					if (v == null) v = constants.get(operand);
-					else { // V is not null, and has some value, if the opcode is a branch, convert to an offset
-						if (updated[0].charAt(0) == 'b')
-							// V has the destination; offset = destination - current
-							v = v - j;
-
-					}
-					// if V is null, assume integer, I will have a later check for it
-					if (v == null) {
-						updated[i] = components[i];
-					} else {
-						updated[i] = v.toString();
-					}
-
-				} else {
-					updated[i] = components[i];
+		for (Map.Entry<String, Integer> entry : constants.entrySet()) {
+			for (int i = 0; i < fileContents.length; i++) {
+				String line = fileContents[i].trim();
+				if (line.isBlank()) {
+					continue;
 				}
-				maskPosition = maskPosition << 1;
-			}
-
-			programLines[j] = String.join(" ", updated);
-		}
-	}
-
-	/**
-	 * Convert a series of instructions into the equivalent machine code.
-	 *
-	 * @param programLines List of instructions to convert.
-	 * @return Integer array of the machine code.
-	 */
-	private static int[] convertToMachineCode(String[] programLines) {
-		int[] output = new int[programLines.length];
-		int i = 0;
-		for (String line : programLines) {
-			String[] arguments = line.split("\\s");
-			int machineCode = Opcodes.opcodeMap.get(arguments[0])[1];
-
-			int opcode = machineCode & 0b11111;
-			int rs1, rs2, rd, imm;
-			switch (opcode) {
-				case 0:
-					// ___ ; op
-					break;
-				case 1:
-				case 2:
-				case 3:
-					// rs2, rs1, rd, upper op, opcode
-					rs1 = Registers.getRegisterValue(arguments[1]);
-					rs2 = Registers.getRegisterValue(arguments[2]);
-					rd = Registers.getRegisterValue(arguments[3]);
-					machineCode |= ((rs2 << 10) | (rs1 << 5) | rd) << 8;
-					break;
-				case 6:
-				case 7:
-				case 17:
-					// imm[13:0], rs1, rd; op, s1, imm, rd
-					rs1 = Registers.getRegisterValue(arguments[1]);
-					imm = parseValue(arguments[2]) & 0x3FFF;
-					rd = Registers.getRegisterValue(arguments[3]);
-					machineCode |= ((imm << 10) | (rs1 << 5) | rd) << 8;
-					break;
-				case 18:
-					// imm[3:0], rs1, rd; op, s1, imm, rd
-					rs1 = Registers.getRegisterValue(arguments[1]);
-					imm = parseValue(arguments[2]);
-					rd = Registers.getRegisterValue(arguments[3]);
-
-					if (imm > 0xF)
-						throw new RuntimeException("Cannot shift by a value greater than 15 -> " + line);
-					if (imm < 0)
-						throw new RuntimeException("Cannot shift by a value less than 0 -> " + line);
-
-					machineCode |= ((imm << 10) | (rs1 << 5) | rd) << 8;
-					break;
-				case 4:
-					// imm[13:5], rs2, rs1, imm[4:0] ; op, rs1, rs2, imm
-					rs1 = Registers.getRegisterValue(arguments[1]);
-					rs2 = Registers.getRegisterValue(arguments[2]);
-					imm = parseValue(arguments[3]);
-					machineCode |= (((imm & 0x3FE0) << 10) | (rs2 << 10) | (rs1 << 5) | (imm & 0x1F)) << 8;
-					break;
-				case 5:
-					// imm[13:0], imm[15:14], [_ _ _], rd ; op rd imm
-					rd = Registers.getRegisterValue(arguments[1]);
-					imm = parseValue(arguments[2]);
-					machineCode |= (((imm & 0x3FFF) << 10) | ((imm & 0xC000) >>> 6) | rd) << 8;
-					break;
-				case 25:
-					// imm[13:0], imm[15:14], [3], rd ; op imm rd
-					imm = parseValue(arguments[1]);
-					rd = Registers.getRegisterValue(arguments[2]);
-					machineCode |= (((imm & 0x3FFF) << 10) | ((imm & 0xC000) >>> 6) | rd) << 8;
-					break;
-				case 8:
-					// needs special casing
-					if (machineCode == 8) {
-						// imm[3:0], [- - - - -], rd ; op, imm, rd
-						imm = parseValue(arguments[1]);
-						rd = Registers.getRegisterValue(arguments[2]);
-
-						if (imm > 0xF)
-							throw new RuntimeException("Cannot find port with value greater than 15 -> " + line);
-						if (imm < 0)
-							throw new RuntimeException("Cannot find port with value less than 0 -> " + line);
-
-						machineCode |= ((imm << 10) | rd) << 8;
-					} else if (machineCode == 40) {
-						// imm[3:0], rs1, [- - - - -] ; op, rs1, imm
-						rs1 = Registers.getRegisterValue(arguments[1]);
-						imm = parseValue(arguments[2]);
-
-						if (imm > 0xF)
-							throw new RuntimeException("Cannot find port with value greater than 15 -> " + line);
-						if (imm < 0)
-							throw new RuntimeException("Cannot find port with value less than 0 -> " + line);
-
-						machineCode |= ((imm << 10) | (rs1 << 5)) << 8;
+				if (line.startsWith("def ")) {
+					continue;
+				}
+				String[] split = line.split(" ");
+				for (int j = 0; j < split.length; j++) {
+					if (split[j].equals(entry.getKey())) {
+						fileContents[i] = fileContents[i].replace(split[j], Integer.toString(entry.getValue()));
 					}
-					break;
-				default:
-					/*throw new RuntimeException*/
-					System.err.println("Could not find opcode: " + opcode);
+				}
 			}
-
-
-			output[i++] = machineCode;
 		}
-		return output;
+	}
+
+
+	/**
+	 * Removes comments and in-line comments from the file.  Keeps the number of lines the same
+	 *
+	 * @param fileContents The contents of the file as a String array
+	 * @return The formatted file as a String array
+	 */
+	private static String[] formatFile(String[] fileContents) {
+		if (fileContents == null) {
+			throw new IllegalArgumentException("File Contents Array cannot be null");
+		}
+
+		String[] lines = new String[fileContents.length];
+		for (int i = 0; i < fileContents.length; i++) {
+			String line = fileContents[i];
+			line = line.trim();
+			line = line.replaceAll("\t", " ");
+			line = line.replaceAll("[()]", " ");
+			if (line.startsWith("//")) { // Remove comments
+				line = "";
+			}
+			line = line.split("//")[0]; // Remove in-line comments
+			lines[i] = line;
+		}
+		return lines;
 	}
 
 	/**
-	 * Takes in a string value and figures out what the integer value is regardless of the prefix.
-	 * For example, it can parse `0b10` (binary), `0765` (octal), `0xABC` (hexadecimal), or regular integers `1234`.
-	 * There is also compatibility for converting characters to their respective values, but it needs to be in the
-	 * format of `'c'`.
+	 * Reads from a .as file and returns an array of strings containing the contents of the file.
 	 *
-	 * @param value Some string containing a character string or numerical value.
-	 * @return Integer representation of that value.
+	 * @param filePath The path to the .as file
+	 * @return An array of strings containing the contents of the file
 	 */
-	private static int parseValue(String value) {
-		// Parse char
-		if (value.charAt(0) == '\'' && value.charAt(value.length() - 1) == '\'') {
-			if (value.length() <= 2 || value.length() > 4)
-				throw new IllegalArgumentException("Character parsing requires characters to be a single " +
-						"character. Either a single letter, or an escape character.");
-
-			value = value.substring(1, value.length() - 1);
-
-			if (value.charAt(0) == '\\') {
-				return switch (value.charAt(1)) {
-					case 'r' -> '\r';
-					case 'n' -> '\n';
-					default -> throw new IllegalStateException("Unexpected value: " + value.charAt(1));
-				};
-			}
-			return value.charAt(0);
-		}
-
-		int base = 10;
-		if (value.startsWith("0x") || value.startsWith("0X")) {
-			value = value.substring(2);
-			base = 16;
-		} else if (value.startsWith("0b") || value.startsWith("0B")) {
-			value = value.substring(2);
-			base = 2;
-		} else if (value.startsWith("0") && value.length() > 1) {
-			value = value.substring(1);
-			base = 8;
+	private static String[] readFile(String filePath) {
+		if (filePath == null) {
+			throw new IllegalArgumentException("File path cannot be null");
 		}
 
 		try {
-			int result = Integer.parseInt(value, base);
-			if (result > CPUSpecs.bitMask)
-				throw new IllegalArgumentException("Value: \"" + value + "\" is not a legal numerical parsing");
-			return result;
-		} catch (NumberFormatException e) {
-			throw new IllegalArgumentException("Value " + value + " is not a number");
+			File file = new File(filePath);
+			Scanner myReader = new Scanner(file);
+			ArrayList<String> lines = new ArrayList<>();
+			while (myReader.hasNextLine()) {
+				lines.add(myReader.nextLine());
+			}
+			myReader.close();
+			return lines.toArray(new String[0]);
+		} catch (FileNotFoundException e) {
+			System.err.println("An error occurred. File not found.");
+			e.printStackTrace();
+			System.exit(-1);
+			return null;
 		}
 	}
 }

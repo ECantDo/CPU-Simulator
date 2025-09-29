@@ -9,7 +9,7 @@ li	first s1
 li	0x1 s2
 li	46368 s3
 
-fib_loop:
+fib_loop: // This is an annoying comment (maybe)
 	str	s0 0(s2) // Save value into RAM
 
 	add	s0 s1 t0

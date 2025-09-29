@@ -30,24 +30,24 @@ public class PseudoOpcodes {
 	}};
 
 	private static final Map<String, String[]> convertionMap = new HashMap<>() {{
-		put("mv", new String[]{"rd", "rs"});
+		put("mv", new String[]{"rs", "rd"});
 		put("nop", new String[]{});
-		put("neg", new String[]{"rd", "rs"});
+		put("neg", new String[]{"rs", "rd"});
 
-		put("beqz", new String[]{"rs", "offset"});
-		put("bnez", new String[]{"rs", "offset"});
-		put("blez", new String[]{"rs", "offset"});
-		put("bgez", new String[]{"rs", "offset"});
-		put("bltz", new String[]{"rs", "offset"});
-		put("bgtz", new String[]{"rs", "offset"});
+		put("beqz", new String[]{"rs", "imm"});
+		put("bnez", new String[]{"rs", "imm"});
+		put("blez", new String[]{"rs", "imm"});
+		put("bgez", new String[]{"rs", "imm"});
+		put("bltz", new String[]{"rs", "imm"});
+		put("bgtz", new String[]{"rs", "imm"});
 
-		put("bgt", new String[]{"rs", "rt", "offset"});
-		put("ble", new String[]{"rs", "rt", "offset"});
-		put("bgtu", new String[]{"rs", "rt", "offset"});
-		put("bleu", new String[]{"rs", "rt", "offset"});
+		put("bgt", new String[]{"rs", "rt", "imm"});
+		put("ble", new String[]{"rs", "rt", "imm"});
+		put("bgtu", new String[]{"rs", "rt", "imm"});
+		put("bleu", new String[]{"rs", "rt", "imm"});
 
-		put("j", new String[]{"offset"});
-		put("jal", new String[]{"offset"});
+		put("j", new String[]{"imm"});
+		put("jal", new String[]{"imm"});
 		put("ret", new String[]{});
 	}};
 
@@ -78,5 +78,10 @@ public class PseudoOpcodes {
 		}
 
 		return String.join(" ", output);
+	}
+
+	public static boolean operationExists(String operation) {
+		operation = operation.toLowerCase();
+		return PseudoOpcodes.opcodeMap.get(operation) != null;
 	}
 }

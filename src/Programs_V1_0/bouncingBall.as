@@ -5,6 +5,8 @@ cscr
 // reg 2 -> x dir | reg 4 -> Def value
 // reg 3 -> y dir | reg 5 -> Def value
 
+ima imb add 3 5 r2
+
 
 ima cpy 1 r4
 ima cpy 1 r5
