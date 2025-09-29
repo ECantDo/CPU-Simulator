@@ -170,12 +170,17 @@ public class CPUExecutionCycle {
 			//===========================================================
 			// IO
 			//===========================================================
-			case 28: // OUT
-				io.ioOutput(rs1Val, rd);
-				break;
+			case 8: // IN / OUT
+				int port = imm & 0xF; // same mask as decode
 
-			case 29: // IN
-				registers.set(rd, io.ioInput(rs1Val));
+				if ((opcode >> 5) == 0) { // IN
+					// rd gets input from port
+					int valueIn = io.ioInput(port);
+					registers.set(rd, valueIn);
+				} else { // OUT
+					// write rs1 to port
+					io.ioOutput(rs1Val, port);
+				}
 				break;
 
 			default:
@@ -263,6 +268,22 @@ public class CPUExecutionCycle {
 				int branchImm = (high9 << 5) | low5;
 				branchImm = signExtend(branchImm, 14);
 				result.put("imm", branchImm);
+				break;
+
+			case 8: // IO ports
+				int portImm = (operationValue >> 18) & 0x3FFF; // upper imm field
+				portImm &= 0xF; // only 4 bits are valid
+				result.put("imm", portImm);
+
+				if ((opcode >> 5) == 0) { // IN
+					int rdIn = (operationValue >> 8) & 0b11111;
+					result.put("rd", rdIn);
+					result.put("rs1", 0); // unused
+				} else { // OUT
+					int rs1Out = (operationValue >> 13) & 0b11111;
+					result.put("rs1", rs1Out);
+					result.put("rd", 0); // unused
+				}
 				break;
 
 			default:

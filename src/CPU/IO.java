@@ -17,6 +17,11 @@ public class IO {
         port = port & 0xF; // 4 bit for port
         data = data & 0xFFFF; // 16 bit being sent
 
+        if (this.IOPorts[port] == null){
+            throw new IllegalArgumentException("Cannot output to port " + port +
+                    " because nothing exists for that port");
+        }
+
         this.IOPorts[port].ioInput(data);
     }
 

@@ -212,6 +212,20 @@ public class Build {
 					// Bits [5 : 13] take the rest of the instruction
 					operationValue |= (immediateValue >> 5) << 23;
 					break;
+				case 8: // IO ports
+					immediateValue &= 0xF;
+
+					// Imm bits starts 3rd bit into byte 3
+					operationValue |= (immediateValue & 0x3FFF) << 18;
+
+					if (operationValue >> 5 == 0) { // in
+						// rd -> bit 0 of byte 2
+						operationValue |= (instructionValues[2] & 0x1F) << 8;
+					} else { // out
+						// rs1 -> bit 5 of byte 2
+						operationValue |= (instructionValues[1] & 0x1F) << 13;
+					}
+					break;
 				default:
 					throw new UnsupportedOperationException("Unimplemented encoding for function " +
 							(operationValue & 0b11111));
@@ -267,7 +281,7 @@ public class Build {
 			if (line.isBlank()) {
 				continue;
 			}
-			if (line.startsWith("def ")){
+			if (line.startsWith("def ")) {
 				continue;
 			}
 			if (line.contains(":")) {
@@ -345,7 +359,8 @@ public class Build {
 
 
 	/**
-	 * Removes comments and in-line comments from the file.  Keeps the number of lines the same
+	 * Removes comments and in-line comments from the file. Normalizes whitespace
+	 * (tabs/spaces -> single space) and keeps the number of lines the same.
 	 *
 	 * @param fileContents The contents of the file as a String array
 	 * @return The formatted file as a String array
@@ -358,17 +373,22 @@ public class Build {
 		String[] lines = new String[fileContents.length];
 		for (int i = 0; i < fileContents.length; i++) {
 			String line = fileContents[i];
-			line = line.trim();
-			line = line.replaceAll("\t", " ");
-			line = line.replaceAll("[()]", " ");
-			if (line.startsWith("//")) { // Remove comments
-				line = "";
+
+			// Remove in-line comments
+			if (line.contains("//")) {
+				line = line.substring(0, line.indexOf("//"));
 			}
-			line = line.split("//")[0]; // Remove in-line comments
+
+			// Normalize whitespace + brackets
+			line = line.replaceAll("[()]", " ");   // replace () with spaces
+			line = line.replaceAll("\\s+", " ");  // collapse tabs/spaces into one space
+			line = line.trim();
+
 			lines[i] = line;
 		}
 		return lines;
 	}
+
 
 	/**
 	 * Reads from a .as file and returns an array of strings containing the contents of the file.
