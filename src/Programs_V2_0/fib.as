@@ -20,4 +20,5 @@ fib_loop: // This is an annoying comment (maybe)
 
 	bltu	s0 s3 fib_loop
 
+str	s0 0(s2)
 hlt
