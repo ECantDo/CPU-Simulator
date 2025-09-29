@@ -1,34 +1,43 @@
 package CPU;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class Registers {
 
-    private final int[] registers;
+	private final int[] regs;
 
-    public Registers() {
-        registers = new int[CPUSpecs.registerCount];
-    }
+	public Registers() {
+		regs = new int[CPUSpecs.registerCount];
+	}
 
-    public void set(int index, int value) {
-        registers[index & CPUSpecs.registerMask] = value & CPUSpecs.bitMask;
-    }
+	/**
+	 * Write a value to a register.
+	 * Register 0 is hardwired to 0 and ignores writes.
+	 */
+	public void set(int index, int value) {
+		index &= CPUSpecs.registerMask;
+		if (index == 0) return; // x0 = 0
+		regs[index] = value & CPUSpecs.bitMask;
+	}
 
-    public int[] get(int index_a, int index_b) {
-        index_a = (index_a & CPUSpecs.registerMask);
-        index_b = (index_b & CPUSpecs.registerMask);
-        return new int[]{registers[index_a], registers[index_b]};
-    }
+	/**
+	 * Read a single register.
+	 */
+	public int get(int index) {
+		index &= CPUSpecs.registerMask;
+		if (index == 0) return 0; // hardwired zero
+		return regs[index];
+	}
 
-    public String toString() {
-        int[] output = new int[CPUSpecs.registerCount];
-        for (int i = 0; i < CPUSpecs.registerCount; i++) {
-            output[i] = registers[i] & 0xFF;
-        }
-        List<String> list = Arrays.stream(output).mapToObj(String::valueOf).collect(Collectors.toList());
-        list.add(0, "REGISTERS:");
-        return Arrays.toString(output);
-    }
+	/**
+	 * Debug dump of all registers.
+	 */
+	@Override
+	public String toString() {
+		int[] snapshot = new int[regs.length];
+		for (int i = 0; i < regs.length; i++) {
+			snapshot[i] = get(i); // ensures masking + x0=0
+		}
+		return "REGISTERS: " + Arrays.toString(snapshot);
+	}
 }

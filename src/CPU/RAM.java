@@ -13,11 +13,11 @@ public class RAM {
 
 
     public int get(int address) {
-        return ram[address] & 0xFF;
+        return ram[address] & CPUSpecs.bitMask;
     }
 
     public void set(int address, int value) {
-        ram[address] = value & 0xFF;
+        ram[address] = value & CPUSpecs.bitMask;
     }
 
 

@@ -2,19 +2,22 @@ package CPU;
 
 public class ProgramCounter {
 
-    private int PROGRAM_COUNTER = 0;
+	private int programCounter = 0;
 
-    public void setProgramCounter(int value){
-        this.PROGRAM_COUNTER = value & CPUSpecs.romAddressSpaceMask;
-    }
+	public void setProgramCounter(int value) {
+		this.programCounter = value & CPUSpecs.romAddressSpaceMask;
+	}
 
-    public void increment(int amount) {
-        this.PROGRAM_COUNTER += amount;
-        this.PROGRAM_COUNTER = this.PROGRAM_COUNTER & CPUSpecs.romAddressSpaceMask;
-    }
+	public void increment(int amount) {
+		this.programCounter = (this.programCounter + amount) & CPUSpecs.romAddressSpaceMask;
+	}
 
-    public int getProgramCounter() {
-        return this.PROGRAM_COUNTER;
-    }
+	public int getProgramCounter() {
+		return this.programCounter;
+	}
+
+	public void reset() {
+		this.programCounter = 0;
+	}
 
 }

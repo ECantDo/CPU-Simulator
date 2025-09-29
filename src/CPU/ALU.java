@@ -21,16 +21,16 @@ public class ALU {
 	//==================================================================================================================
 	// Run the CPU.ALU, get the operation and run the proper operation
 	//==================================================================================================================
-	private int runOperation(int operation, int input_a, int input_b) {
+	public int runOperation(int operation, int input_a, int input_b) {
 
 		// The opcode is in the left 4-most bits, if it is 1, 2, or 3, it is an ALU operation.
 		int opcode = operation & 0b00001111;
-		if (!(opcode == 1 || opcode == 2 || opcode == 3)) {
-			return 0;
-		}
+//		if (!(opcode == 1 || opcode == 2 || opcode == 3)) {
+//			return 0;
+//		}
 
 		// The sub opcode tells the ALU what operation to perform
-		int subOpcode = (operation & 11100000) >> 5;
+		int subOpcode = (operation & 0b11100000) >> 5;
 
 		input_a &= CPUSpecs.bitMask;
 		input_b &= CPUSpecs.bitMask;

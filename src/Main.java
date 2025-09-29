@@ -12,16 +12,16 @@ public class Main {
 	public static void main(String[] args) {
 //		int[] instructions = Build.build("src\\Programs_V2_0\\fib.as");
 
-		String programPath = "src\\Programs_V2_0\\fib.as";
+		String programPath = "src\\Programs_V2_0\\testingThings.as";
 
-		int speed = 10;
+		int delay = 0;
 		int[] program = Build.build(programPath);
 
 //		for (int i : program) {
 //			System.out.println(disassemble(i));
 //		}
 
-		CPUExecutionCycle executionLoop = new CPUExecutionCycle(program, speed);
+		CPUExecutionCycle executionLoop = new CPUExecutionCycle(program, delay);
 		executionLoop.loop();
 	}
 

@@ -134,7 +134,7 @@ public class Build {
 				if ((currentPosition & immediatePosition) != 0) {
 					int labelLineNumber = labels.getOrDefault(part, -1);
 					if (labelLineNumber >= 0) {
-						immediateValue = labelLineNumber - lineNumber;
+						immediateValue = labelLineNumber - lineNumber - 1;
 //						System.err.println("Imm is label -> " + labelLineNumber + " - " + lineNumber + " = " + immediateValue);
 					} else {
 						immediateValue = parseInt(part);
