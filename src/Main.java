@@ -4,15 +4,17 @@ import Assembler.Build;
 import Assembler.Operations.Opcodes;
 import Assembler.Operations.Registers;
 
+import java.io.File;
 import java.util.Map;
 
 import static CPU.CPUExecutionCycle.decodeInstruction;
 
 public class Main {
+
 	public static void main(String[] args) {
 //		int[] instructions = Build.build("src\\Programs_V2_0\\fib.as");
 
-		String programPath = "src\\Programs_V2_0\\testingThings.as";
+		String programPath = "src" + File.separator + "Programs_V2_0" + File.separator + "fib.as";
 
 		int delay = 0;
 		int[] program = Build.build(programPath);
@@ -58,7 +60,7 @@ public class Main {
 						Registers.riscVRegisters[decoded.get("rd")],
 						decoded.get("imm"),
 						Registers.riscVRegisters[decoded.get("rs1")]
-						);
+				);
 
 			case 18: // Shifter (imm limited to 4 bits)
 				return String.format("sh %s %s %d",
